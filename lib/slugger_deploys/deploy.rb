@@ -3,14 +3,14 @@ class SluggerDeploys::Deploy
   include Dockly::Util::Logger::Mixin
 
   logger_prefix '[slugger deploy]'
-  dsl_attribute :stop_command, :db_config_path, :instance_live_grace_period,
-                :app_port, :continue_if_stop_app_fails,
-                :stop_app_retries, :sleep_before_termination, :post_deploy_command
+  dsl_attribute :stop_command, :db_config_path,
+                :instance_live_grace_period, :app_port,
+                :continue_if_stop_app_fails, :stop_app_retries,
+                :sleep_before_termination, :post_deploy_command
 
   dsl_class_attribute :ssh, SluggerDeploys::Connection
   dsl_class_attribute :migration_ssh, SluggerDeploys::Connection
   dsl_class_attribute :local_ssh, SluggerDeploys::Connection
-  dsl_class_attribute :package, SluggerDeploys::Connection
   dsl_class_attribute :auto_scaling, SluggerDeploys::AutoScaling
 
   default_value :db_config_path, 'config/database.yml'
