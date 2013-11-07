@@ -16,7 +16,7 @@ Gem::Specification.new do |gem|
   gem.version       = SluggerDeploys::VERSION
   gem.add_dependency 'activerecord', '>= 3.2.0'
   gem.add_dependency 'docker-api', '~> 1.5.2'
-  gem.add_dependency 'excon', '>= 0.28.0'
+  gem.add_dependency 'excon'
   gem.add_dependency 'fog'
   gem.add_dependency 'grit'
   gem.add_dependency 'net-ssh'

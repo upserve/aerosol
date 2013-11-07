@@ -20,10 +20,10 @@ class SluggerDeploys::Runner
     end
 
     def setup(file = 'deploys.rb')
-      SluggerDeploys::AutoScaling.instances
-      SluggerDeploys::LaunchConfiguration.instances
-      SluggerDeploys::Connection.instances
-      SluggerDeploys::Deploy.instances
+      auto_scalings = SluggerDeploys::AutoScaling.instances
+      launch_configs = SluggerDeploys::LaunchConfiguration.instances
+      connections = SluggerDeploys::Connection.instances
+      deploys = SluggerDeploys::Deploy.instances
       instance_eval(IO.read('deploys.rb'), 'deploys.rb')
     end
 
