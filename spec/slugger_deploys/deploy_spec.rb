@@ -77,54 +77,6 @@ describe SluggerDeploys::Deploy do
     end
   end
 
-  describe '#method_missing' do
-    subject { SluggerDeploys::Deploy }
-
-    context 'when the method start with find_by_' do
-      context 'and it ends with a dsl class attribute of Deploy' do
-        context 'and it is given an argument' do
-          context 'when an instance is found' do
-            let!(:instance) do
-              SluggerDeploys::Deploy.new! do
-                name :james
-                package { name :jimmy }
-              end
-            end
-
-            it 'returns the instance' do
-              subject.find_by_package(:jimmy).name.should == :james
-            end
-          end
-
-          context 'when the instance cannot be found' do
-            it 'returns nil' do
-              subject.find_by_package(:__not_a_package__).should be_nil
-            end
-          end
-        end
-
-        context 'but it is given no arguments' do
-          it 'raises an error' do
-            expect { subject.find_by_package }.to raise_error
-          end
-        end
-      end
-
-      context 'but it does not end with a dsl class attribute of Deploy' do
-        it 'raises an error' do
-          expect { subject.find_by_swag('2 Chainz') }.to raise_error
-        end
-      end
-    end
-
-    context 'when the method does not start with find_by_' do
-      it 'raises an error' do
-        expect { subject.lololol }.to raise_error
-        expect { subject.no_a_method }.to raise_error
-      end
-    end
-  end
-
   describe '#generate_ssh_command' do
     let(:ssh_ref) { double(:ssh_ref) }
     let(:instance) { double(:instance) }

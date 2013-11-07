@@ -58,28 +58,6 @@ class SluggerDeploys::Deploy
     end
   end
 
-  class << self
-    def find(&block)
-      inst = instances.find(&block)
-      inst[1] unless inst.nil?
-    end
-
-    def method_missing(name, *args)
-      if name =~ /\Afind_by_(?<dsl>.*)\z/
-        dsl = Regexp.last_match[:dsl].to_sym
-        if (args.length == 1) && [:ssh, :migration_ssh, :package, :auto_scaling].include?(dsl)
-          if inst = instances.find { |k, v| v.public_send(dsl).name == args[0] rescue nil }
-            inst[1]
-          end
-        else
-          super
-        end
-      else
-        super
-      end
-    end
-  end
-
   def generate_ssh_command(instance)
     ssh_command = "ssh -o 'UserKnownHostsFile=/dev/null' -o 'StrictHostKeyChecking=no' "
     unless local_ssh_ref.nil?
