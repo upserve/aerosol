@@ -7,31 +7,6 @@ class SluggerDeploys::Runner
   include Dockly::Util::Logger::Mixin
 
   logger_prefix '[slugger runner]'
-  class << self
-    {
-      :auto_scaling => SluggerDeploys::AutoScaling,
-      :deploy => SluggerDeploys::Deploy,
-      :launch_configuration => SluggerDeploys::LaunchConfiguration,
-      :ssh => SluggerDeploys::Connection
-    }.each do |method, klass|
-      define_method(method) do |sym, &block|
-        klass.new!(:name => sym, &block)
-      end
-    end
-
-    def setup(file = 'deploys.rb')
-      SluggerDeploys::AutoScaling.instances
-      SluggerDeploys::LaunchConfiguration.instances
-      SluggerDeploys::Connection.instances
-      SluggerDeploys::Deploy.instances
-      instance_eval(IO.read('deploys.rb'), 'deploys.rb')
-    end
-
-    def singleton
-      @singleton ||= new
-    end
-  end
-
   attr_reader :deploy
 
   def run_migration
@@ -176,6 +151,10 @@ class SluggerDeploys::Runner
     raise "@deploy must be present" if deploy.nil?
   end
 
+  def git_sha
+    @git_sha ||= SluggerDeploys::Util.git_sha
+  end
+
   delegate :ssh, :migration_ssh, :package, :auto_scaling, :stop_command,
            :live_check, :db_config_path, :instance_live_grace_period,
            :app_port, :continue_if_stop_app_fails, :stop_app_retries, :to => :deploy
@@ -219,10 +198,6 @@ private
     end
     ssh.loop
     res
-  end
-
-  def git_sha
-    SluggerDeploys::Util.git_sha
   end
 
   def random_open_port

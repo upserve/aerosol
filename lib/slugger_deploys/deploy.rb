@@ -3,14 +3,14 @@ class SluggerDeploys::Deploy
   include Dockly::Util::Logger::Mixin
 
   logger_prefix '[slugger deploy]'
-  dsl_attribute :stop_command, :db_config_path, :instance_live_grace_period,
-                :app_port, :continue_if_stop_app_fails,
-                :stop_app_retries, :sleep_before_termination, :post_deploy_command
+  dsl_attribute :stop_command, :db_config_path,
+                :instance_live_grace_period, :app_port,
+                :continue_if_stop_app_fails, :stop_app_retries,
+                :sleep_before_termination, :post_deploy_command
 
   dsl_class_attribute :ssh, SluggerDeploys::Connection
   dsl_class_attribute :migration_ssh, SluggerDeploys::Connection
   dsl_class_attribute :local_ssh, SluggerDeploys::Connection
-  dsl_class_attribute :package, SluggerDeploys::Connection
   dsl_class_attribute :auto_scaling, SluggerDeploys::AutoScaling
 
   default_value :db_config_path, 'config/database.yml'
@@ -55,28 +55,6 @@ class SluggerDeploys::Deploy
       true
     else
       raise "post deploy failed"
-    end
-  end
-
-  class << self
-    def find(&block)
-      inst = instances.find(&block)
-      inst[1] unless inst.nil?
-    end
-
-    def method_missing(name, *args)
-      if name =~ /\Afind_by_(?<dsl>.*)\z/
-        dsl = Regexp.last_match[:dsl].to_sym
-        if (args.length == 1) && [:ssh, :migration_ssh, :package, :auto_scaling].include?(dsl)
-          if inst = instances.find { |k, v| v.public_send(dsl).name == args[0] rescue nil }
-            inst[1]
-          end
-        else
-          super
-        end
-      else
-        super
-      end
     end
   end
 
