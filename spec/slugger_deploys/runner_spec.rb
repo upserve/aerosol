@@ -1,21 +1,6 @@
 require 'spec_helper'
 
 describe SluggerDeploys::Runner do
-  {
-    :auto_scaling => SluggerDeploys::AutoScaling,
-    :deploy => SluggerDeploys::Deploy,
-    :launch_configuration => SluggerDeploys::LaunchConfiguration,
-    :ssh => SluggerDeploys::Connection
-  }.each do |name, klass|
-    describe ".#{name}" do
-      before { described_class.send(name, :"runner_test_#{name}") }
-
-      it "creates a new #{klass}" do
-        klass.instances.keys.should include :"runner_test_#{name}"
-      end
-    end
-  end
-
   describe '#with_deploy' do
     before { subject.instance_variable_set(:@deploy, :original_deploy) }
 
@@ -30,7 +15,6 @@ describe SluggerDeploys::Runner do
     context 'when the name is a valid deploy' do
       before do
         SluggerDeploys::Deploy.new!(:name => :my_deploy)
-        described_class.deploy(:my_deploy)
       end
 
       it 'sets @deploy to that deploy' do

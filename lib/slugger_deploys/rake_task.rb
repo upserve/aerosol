@@ -3,17 +3,13 @@ require 'slugger_deploys'
 
 $rake_task_logger = Dockly::Util::Logger.new('[slugger rake_task]', STDOUT, false)
 
-if File.exist?('deploys.rb')
-  SluggerDeploys::Runner.setup('deploys.rb')
-end
-
 class Rake::AutoScalingTask < Rake::Task
   def needed?
     !auto_scaling.exists?
   end
 
   def auto_scaling
-    SluggerDeploys::AutoScaling[name.split(':').last.to_sym]
+    SluggerDeploys.auto_scaling(name.split(':').last.to_sym)
   end
 end
 
@@ -29,7 +25,7 @@ namespace :deploys do
   end
 
   namespace :auto_scaling do
-    SluggerDeploys::AutoScaling.instances.values.reject(&:from_aws).each do |inst|
+    SluggerDeploys.auto_scalings.values.reject(&:from_aws).each do |inst|
       auto_scaling inst.name => 'deploys:load' do |name|
         Thread.current[:rake_task] = name
         inst.create
@@ -38,7 +34,7 @@ namespace :deploys do
   end
 
   namespace :ssh do
-    SluggerDeploys::Deploy.instances.values.each do |inst|
+    SluggerDeploys.deploys.values.each do |inst|
       task inst.name do |name|
         Thread.current[:rake_task] = name
         inst.generate_ssh_commands.each do |ssh_command|
@@ -51,7 +47,7 @@ namespace :deploys do
   all_deploy_tasks = []
   all_asynch_deploy_tasks = []
 
-  SluggerDeploys::Deploy.instances.values.each do |inst|
+  SluggerDeploys.deploys.values.each do |inst|
     namespace :"#{inst.name}" do
       task :run_migration => 'deploys:load' do |name|
         Thread.current[:rake_task] = name
