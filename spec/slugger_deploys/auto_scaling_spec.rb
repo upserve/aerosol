@@ -14,57 +14,6 @@ describe SluggerDeploys::AutoScaling do
   subject { described_class.new! }
   before { subject.stub(:sleep) }
 
-  describe '#format_tags' do
-    context 'when there are no tags' do
-      before { subject.instance_variable_set(:@tags, {}) }
-
-      its(:formatted_tags) { should be_nil }
-    end
-
-    context 'when there are tags' do
-      before do
-        subject.tag :first_tag  => '1'
-        subject.tag :second_tag => '2'
-      end
-      let(:expected_value) do
-        [
-          {
-            'Key' => "GitSha",
-            'Value' => SluggerDeploys::Util.git_sha,
-            'PropogateAtLaunch' => true,
-            'ResourceId' => "#{subject.name}-#{SluggerDeploys::Util.git_sha}",
-            'ResourceType' => 'auto-scaling-group'
-          },
-          {
-            'Key' => "Deploy",
-            'Value' => subject.name.to_s,
-            'PropogateAtLaunch' => true,
-            'ResourceId' => "#{subject.name}-#{SluggerDeploys::Util.git_sha}",
-            'ResourceType' => 'auto-scaling-group'
-          },
-          {
-            'Key' => :first_tag,
-            'Value' => '1',
-            'PropogateAtLaunch' => true,
-            'ResourceId' => subject.aws_identifier,
-            'ResourceType' => 'auto-scaling-group'
-          },
-          {
-            'Key' => :second_tag,
-            'Value' => '2',
-            'PropogateAtLaunch' => true,
-            'ResourceId' => subject.aws_identifier,
-            'ResourceType' => 'auto-scaling-group'
-          }
-        ]
-      end
-
-      it 'returns a properly formatted array' do
-        subject.formatted_tags.should == expected_value
-      end
-    end
-  end
-
   describe '#create!' do
     context 'when none of the required options are set' do
       it 'raises an error' do

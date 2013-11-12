@@ -92,19 +92,6 @@ class SluggerDeploys::AutoScaling
     @tags ||= {}
   end
 
-  def formatted_tags
-    return if tags.empty?
-    tags.map do |key, value|
-      {
-        'Key' => key,
-        'Value' => value,
-        'PropogateAtLaunch' => true,
-        'ResourceId' => aws_identifier,
-        'ResourceType' => 'auto-scaling-group'
-      }
-    end
-  end
-
   def self.request_all
     SluggerDeploys::AWS.auto_scaling
                 .describe_auto_scaling_groups
@@ -132,13 +119,19 @@ private
       'HealthCheckType' => health_check_type,
       'LoadBalancerNames' => load_balancer_names,
       'PlacementGroup' => placement_group,
-      'Tags' => formatted_tags
+      'Tags' => tags
     }.reject { |k, v| v.nil? }
   end
 
   def tag_from_array(ary)
-    ary.each do |hash|
-      tag hash['Key'] => hash['Value']
+    if ary.is_a? Hash
+      ary.each do |key, value|
+        tag key => value
+      end
+    else
+      ary.each do |hash|
+        tag hash['Key'] => hash['Value']
+      end
     end
   end
 
