@@ -5,8 +5,6 @@ SluggerDeploys is a gem made to ease the pain of deploying. For this gem to be u
 
 - You are using `ActiveRecord` if you're deploying a Rails repo
 - You use AWS
-- All of your instances use Ubuntu or another docker-capable system
-- You want to use [Docker](http://docker.io) for process isolation
 
 Although only a specific type of repository may be used, these assumptions allow us to define a simple DSL to describe your repository.
 
