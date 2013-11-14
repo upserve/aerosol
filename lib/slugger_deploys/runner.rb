@@ -158,7 +158,6 @@ class SluggerDeploys::Runner
   delegate :ssh, :migration_ssh, :package, :auto_scaling, :stop_command,
            :live_check, :db_config_path, :instance_live_grace_period,
            :app_port, :continue_if_stop_app_fails, :stop_app_retries, :to => :deploy
-  delegate :docker, :foreman, :to => :package
   delegate :launch_configuration, :to => :auto_scaling
 
 private
