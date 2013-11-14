@@ -11,7 +11,6 @@ task :default => [:spec, :quality]
 
 RSpec::Core::RakeTask.new do |t|
   t.pattern = 'spec/**/*_spec.rb'
-  t.rspec_opts = '--tag ~docker' if ENV['JENKINS']
 end
 
 Cane::RakeTask.new(:quality) do |cane|

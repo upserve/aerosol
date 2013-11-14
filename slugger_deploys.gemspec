@@ -15,7 +15,6 @@ Gem::Specification.new do |gem|
   gem.require_paths = %w{lib}
   gem.version       = SluggerDeploys::VERSION
   gem.add_dependency 'activerecord', '>= 3.2.0'
-  gem.add_dependency 'docker-api', '~> 1.5.2'
   gem.add_dependency 'excon'
   gem.add_dependency 'fog', '~> 1.18.0'
   gem.add_dependency 'grit'
