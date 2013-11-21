@@ -2,7 +2,7 @@ class Aerosol::AutoScaling
   include Aerosol::AWSModel
   include Dockly::Util::Logger::Mixin
 
-  logger_prefix '[slugger auto_scaling]'
+  logger_prefix '[aerosol auto_scaling]'
   aws_attribute :aws_identifier            => 'AutoScalingGroupName',
                 :availability_zones        => 'AvailabilityZones',
                 :min_size                  => 'MinSize',

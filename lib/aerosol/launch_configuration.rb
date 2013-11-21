@@ -2,7 +2,7 @@ class Aerosol::LaunchConfiguration
   include Aerosol::AWSModel
   include Dockly::Util::Logger::Mixin
 
-  logger_prefix '[slugger launch_configuration]'
+  logger_prefix '[aerosol launch_configuration]'
   aws_attribute :aws_identifier  => 'LaunchConfigurationName',
                 :ami             => 'ImageId',
                 :instance_type   => 'InstanceType',
