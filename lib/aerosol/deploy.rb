@@ -2,7 +2,7 @@ class Aerosol::Deploy
   include Dockly::Util::DSL
   include Dockly::Util::Logger::Mixin
 
-  logger_prefix '[slugger deploy]'
+  logger_prefix '[aerosol deploy]'
   dsl_attribute :stop_command, :db_config_path,
                 :instance_live_grace_period, :app_port,
                 :continue_if_stop_app_fails, :stop_app_retries,

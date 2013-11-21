@@ -6,7 +6,7 @@ class Aerosol::Runner
   extend Dockly::Util::Delegate
   include Dockly::Util::Logger::Mixin
 
-  logger_prefix '[slugger runner]'
+  logger_prefix '[aerosol runner]'
   attr_reader :deploy
 
   def run_migration
@@ -65,7 +65,7 @@ class Aerosol::Runner
       sleep(10) unless remaining_instances.empty?
     end
     unless remaining_instances.empty?
-      raise "[slugger runner] site live check timed out after #{instance_live_grace_period} seconds"
+      raise "[aerosol runner] site live check timed out after #{instance_live_grace_period} seconds"
     end
     info "new instances are up"
   end
