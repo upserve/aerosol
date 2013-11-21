@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe SluggerDeploys::Runner do
+describe Aerosol::Runner do
   describe '#with_deploy' do
     before { subject.instance_variable_set(:@deploy, :original_deploy) }
 
@@ -14,12 +14,12 @@ describe SluggerDeploys::Runner do
 
     context 'when the name is a valid deploy' do
       before do
-        SluggerDeploys::Deploy.new!(:name => :my_deploy)
+        Aerosol::Deploy.new!(:name => :my_deploy)
       end
 
       it 'sets @deploy to that deploy' do
         subject.with_deploy(:my_deploy) do
-          subject.deploy.should be_a SluggerDeploys::Deploy
+          subject.deploy.should be_a Aerosol::Deploy
           subject.deploy.name.should == :my_deploy
         end
       end
@@ -47,8 +47,8 @@ describe SluggerDeploys::Runner do
     end
 
     context 'context when the deploy is present' do
-      let!(:connection) { SluggerDeploys::Connection.new!(:name => :run_migration_conn) }
-      let!(:deploy) { SluggerDeploys::Deploy.new!(:name => :run_migration_deploy, :ssh => :run_migration_conn) }
+      let!(:connection) { Aerosol::Connection.new!(:name => :run_migration_conn) }
+      let!(:deploy) { Aerosol::Deploy.new!(:name => :run_migration_deploy, :ssh => :run_migration_conn) }
 
       before { subject.instance_variable_set(:@deploy, deploy) }
 
@@ -112,7 +112,7 @@ describe SluggerDeploys::Runner do
 
   describe '#old_instances' do
     let!(:asg1) do
-      SluggerDeploys::AutoScaling.new! do
+      Aerosol::AutoScaling.new! do
         name :old_instances_asg_1
         availability_zones 'us-east-1'
         min_size 5
@@ -127,7 +127,7 @@ describe SluggerDeploys::Runner do
       end.tap(&:create)
     end
     let!(:asg2) do
-      SluggerDeploys::AutoScaling.new! do
+      Aerosol::AutoScaling.new! do
         name :old_instances_asg_2
         availability_zones 'us-east-1'
         min_size 5
@@ -142,7 +142,7 @@ describe SluggerDeploys::Runner do
       end.tap(&:create)
     end
     let!(:asg3) do
-      SluggerDeploys::AutoScaling.new! do
+      Aerosol::AutoScaling.new! do
         name :old_instances_asg_3
         availability_zones 'us-east-1'
         min_size 5
@@ -158,13 +158,13 @@ describe SluggerDeploys::Runner do
     end
 
     let!(:deploy) do
-      SluggerDeploys::Deploy.new! do
+      Aerosol::Deploy.new! do
         name :old_instances_deploy
         auto_scaling :old_instances_asg_1
       end
     end
 
-    before(:all) { SluggerDeploys::AutoScaling.all.map(&:destroy) }
+    before(:all) { Aerosol::AutoScaling.all.map(&:destroy) }
 
     it 'returns each instance that is not a member of the current auto scaling group' do
       subject.with_deploy :old_instances_deploy do
@@ -183,7 +183,7 @@ describe SluggerDeploys::Runner do
     end
 
     it 'does not modify the existing instances' do
-      SluggerDeploys::Instance.all.map(&:id).sort.should ==
+      Aerosol::Instance.all.map(&:id).sort.should ==
         [asg1, asg2, asg3].map(&:launch_configuration).map(&:all_instances).flatten.map(&:id).sort
       subject.with_deploy :old_instances_deploy do
         subject.new_instances.map(&:id).sort.should == asg1.all_instances.map(&:id).sort
@@ -193,7 +193,7 @@ describe SluggerDeploys::Runner do
 
   describe '#new_instances' do
     let!(:lc7) do
-      SluggerDeploys::LaunchConfiguration.new! do
+      Aerosol::LaunchConfiguration.new! do
         name :lc7
         ami 'fake-ami-how-scandalous'
         instance_type 'm1.large'
@@ -201,7 +201,7 @@ describe SluggerDeploys::Runner do
       end.tap(&:create)
     end
     let!(:asg7) do
-      SluggerDeploys::AutoScaling.new! do
+      Aerosol::AutoScaling.new! do
         name :asg7
         availability_zones 'us-east-1'
         min_size 0
@@ -211,7 +211,7 @@ describe SluggerDeploys::Runner do
       end.tap(&:create)
     end
     let!(:instance1) do
-      SluggerDeploys::Instance.from_hash(
+      Aerosol::Instance.from_hash(
         {
           'InstanceId' => 'z0',
           'LaunchConfigurationName' => lc7.aws_identifier
@@ -226,14 +226,14 @@ describe SluggerDeploys::Runner do
     end
 
     let!(:deploy) do
-      SluggerDeploys::Deploy.new! do
+      Aerosol::Deploy.new! do
         name :new_instances_deploy
         auto_scaling :asg7
       end
     end
 
     before do
-      SluggerDeploys::Instance.stub(:all).and_return([instance1, instance2, instance3])
+      Aerosol::Instance.stub(:all).and_return([instance1, instance2, instance3])
     end
     it 'returns each instance that is a member of the current launch config' do
       subject.with_deploy :new_instances_deploy do
@@ -245,7 +245,7 @@ describe SluggerDeploys::Runner do
   describe '#wait_for_new_instances' do
     let(:instances) { 3.times.map { double(:instance, :public_hostname => 'not-a-real-hostname') } }
     let!(:deploy) do
-      SluggerDeploys::Deploy.new! do
+      Aerosol::Deploy.new! do
         name :wait_for_new_instances_deploy
         live_check '/live_check'
         instance_live_grace_period 1
@@ -281,7 +281,7 @@ describe SluggerDeploys::Runner do
 
   describe '#stop_app' do
     let!(:lc) do
-      SluggerDeploys::LaunchConfiguration.new! do
+      Aerosol::LaunchConfiguration.new! do
         name :stop_app_launch_config
         ami 'stop-app-ami-123'
         instance_type 'm1.large'
@@ -289,7 +289,7 @@ describe SluggerDeploys::Runner do
       end.tap(&:create)
     end
     let!(:asg) do
-      SluggerDeploys::AutoScaling.new! do
+      Aerosol::AutoScaling.new! do
         name :stop_app_auto_scaling_group
         availability_zones 'us-east-1'
         min_size 5
@@ -298,11 +298,11 @@ describe SluggerDeploys::Runner do
         stub(:sleep)
       end.tap(&:create)
     end
-    let!(:instances) { SluggerDeploys::Instance.all.select { |instance| instance.ami == lc.ami } }
+    let!(:instances) { Aerosol::Instance.all.select { |instance| instance.ami == lc.ami } }
     let!(:session) { double(:session) }
     let!(:deploy) do
       s = session
-      SluggerDeploys::Deploy.new! do
+      Aerosol::Deploy.new! do
         name :stop_app_deploy
         ssh :stop_app_ssh do
           user 'dad'
@@ -324,7 +324,7 @@ describe SluggerDeploys::Runner do
 
   describe '#old_auto_scaling_groups' do
     let!(:asg1) do
-      SluggerDeploys::AutoScaling.new! do
+      Aerosol::AutoScaling.new! do
         name :destroy_old_asgs_auto_scaling_group_1
         availability_zones 'us-east-1'
         min_size 0
@@ -335,7 +335,7 @@ describe SluggerDeploys::Runner do
       end
     end
     let!(:asg2) do
-      SluggerDeploys::AutoScaling.new! do
+      Aerosol::AutoScaling.new! do
         name :destroy_old_asgs_auto_scaling_group_2
         availability_zones 'us-east-1'
         min_size 0
@@ -346,7 +346,7 @@ describe SluggerDeploys::Runner do
       end
     end
     let!(:asg3) do
-      SluggerDeploys::AutoScaling.new! do
+      Aerosol::AutoScaling.new! do
         name :destroy_old_asgs_auto_scaling_group_3
         availability_zones 'us-east-1'
         min_size 0
@@ -358,7 +358,7 @@ describe SluggerDeploys::Runner do
     end
 
     let!(:deploy) do
-      SluggerDeploys::Deploy.new! do
+      Aerosol::Deploy.new! do
         name :destroy_old_asgs_deploy
         auto_scaling :destroy_old_asgs_auto_scaling_group_1
       end
@@ -366,7 +366,7 @@ describe SluggerDeploys::Runner do
 
     before do
       subject.instance_variable_set(:@deploy, deploy)
-      SluggerDeploys::AutoScaling.stub(:all).and_return([asg1, asg2, asg3])
+      Aerosol::AutoScaling.stub(:all).and_return([asg1, asg2, asg3])
     end
 
     it 'returns the old groups from this app' do

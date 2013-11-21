@@ -1,6 +1,6 @@
 require 'grit'
 
-module SluggerDeploys::Util
+module Aerosol::Util
   extend self
 
   def is_tar?(path)

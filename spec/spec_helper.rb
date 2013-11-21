@@ -2,15 +2,15 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
 require 'rspec'
-require 'slugger_deploys'
+require 'aerosol'
 # Requires supporting files with custom matchers and macros, etc, in ./support/
 # and its subdirectories.
 #Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 
 Fog.mock!
 
-SluggerDeploys::AWS.aws_access_key_id = 'MOCK_KEY'
-SluggerDeploys::AWS.aws_secret_access_key = 'MOCK_SECRET'
+Aerosol::AWS.aws_access_key_id = 'MOCK_KEY'
+Aerosol::AWS.aws_secret_access_key = 'MOCK_SECRET'
 Dockly::Util::Logger.disable! unless ENV['ENABLE_LOGGER'] == 'true'
 
 RSpec.configure do |config|

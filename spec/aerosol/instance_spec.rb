@@ -1,8 +1,8 @@
 require 'spec_helper'
 
-describe SluggerDeploys::Instance do
+describe Aerosol::Instance do
   let!(:launch_config) do
-    SluggerDeploys::LaunchConfiguration.new! do
+    Aerosol::LaunchConfiguration.new! do
       name :launch_config_for_instances
       ami 'ami-123-abc'
       instance_type 'm1.large'
@@ -11,7 +11,7 @@ describe SluggerDeploys::Instance do
   end
 
   let!(:auto_scaling) do
-    SluggerDeploys::AutoScaling.new! do
+    Aerosol::AutoScaling.new! do
       name :as_group_for_instances
       availability_zones 'us-east-2'
       launch_configuration :launch_config_for_instances

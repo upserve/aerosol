@@ -1,5 +1,5 @@
-class SluggerDeploys::LaunchConfiguration
-  include SluggerDeploys::AWSModel
+class Aerosol::LaunchConfiguration
+  include Aerosol::AWSModel
   include Dockly::Util::Logger::Mixin
 
   logger_prefix '[slugger launch_configuration]'
@@ -22,7 +22,7 @@ class SluggerDeploys::LaunchConfiguration
       raise "You cannot set the aws_identifer directly" unless from_aws
       @aws_identifier = arg
     else
-      @aws_identifier || "#{name}-#{SluggerDeploys::Util.git_sha}"
+      @aws_identifier || "#{name}-#{Aerosol::Util.git_sha}"
     end
   end
 
@@ -44,14 +44,14 @@ class SluggerDeploys::LaunchConfiguration
   end
 
   def all_instances
-    SluggerDeploys::Instance.all.select { |instance|
+    Aerosol::Instance.all.select { |instance|
       !instance.launch_configuration.nil? &&
         (instance.launch_configuration.aws_identifier == self.aws_identifier)
     }.each(&:description)
   end
 
   def self.request_all
-    SluggerDeploys::AWS.auto_scaling
+    Aerosol::AWS.auto_scaling
                 .describe_launch_configurations
                 .body
                 .[]('DescribeLaunchConfigurationsResult')
@@ -66,11 +66,11 @@ private
       'KeyName' => key_name,
       'SecurityGroups' => security_groups,
       'SpotPrice' => spot_price,
-      'UserData' => SluggerDeploys::Util.strip_heredoc(user_data || '')
+      'UserData' => Aerosol::Util.strip_heredoc(user_data || '')
     }.reject { |k, v| v.nil? }
   end
 
   def conn
-    SluggerDeploys::AWS.auto_scaling
+    Aerosol::AWS.auto_scaling
   end
 end

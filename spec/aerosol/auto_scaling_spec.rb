@@ -1,9 +1,9 @@
 require 'spec_helper'
 require 'fog/aws'
 
-describe SluggerDeploys::AutoScaling do
+describe Aerosol::AutoScaling do
   let!(:launch_config) do
-    SluggerDeploys::LaunchConfiguration.new! do
+    Aerosol::LaunchConfiguration.new! do
       name :my_launch_config_for_auto_scaling
       ami 'ami :) :) :)'
       instance_type 'm1.large'
@@ -31,7 +31,7 @@ describe SluggerDeploys::AutoScaling do
 
     context 'when all of the required options are set' do
       let!(:launch_configuration) do
-        SluggerDeploys::LaunchConfiguration.new! do
+        Aerosol::LaunchConfiguration.new! do
           ami 'fake_ami'
           instance_type 'm1.large'
           stub(:sleep)
@@ -46,7 +46,7 @@ describe SluggerDeploys::AutoScaling do
                         :min_size => 1,
                         :max_size => 10 } }
 
-      subject { SluggerDeploys::AutoScaling.new!(options) }
+      subject { Aerosol::AutoScaling.new!(options) }
       before { subject.tag :my_group => '1' }
 
       context 'when the launch configuration is not known' do
@@ -73,7 +73,7 @@ describe SluggerDeploys::AutoScaling do
 
   describe '#destroy!' do
     let(:aws_identifier) { subject.aws_identifier }
-    subject { SluggerDeploys::AutoScaling.new }
+    subject { Aerosol::AutoScaling.new }
 
     context 'when there is no such auto-scaling group' do
       it 'raises an error' do
@@ -187,7 +187,7 @@ describe SluggerDeploys::AutoScaling do
     subject { described_class }
 
     def destroy_all
-      SluggerDeploys::AutoScaling.instances.values.each do |instance|
+      Aerosol::AutoScaling.instances.values.each do |instance|
         instance.destroy! rescue nil
       end
     end
@@ -224,11 +224,11 @@ describe SluggerDeploys::AutoScaling do
         subject.all.map(&:min_size).should == [1, 2]
         subject.all.map(&:max_size).should == [3, 4]
         subject.all.map(&:tags).should == [{
-            "GitSha" => SluggerDeploys::Util.git_sha,
+            "GitSha" => Aerosol::Util.git_sha,
             "Deploy" => insts.first.name.to_s
           },
           {
-            "GitSha" => SluggerDeploys::Util.git_sha,
+            "GitSha" => Aerosol::Util.git_sha,
             "Deploy" => insts.last.name.to_s,
             :my_tag => :is_sweet
           }
@@ -285,7 +285,7 @@ describe SluggerDeploys::AutoScaling do
   end
 
   describe '.latest_for_tag' do
-    subject { SluggerDeploys::AutoScaling }
+    subject { Aerosol::AutoScaling }
 
     before { subject.stub(:all).and_return(groups) }
 
@@ -351,7 +351,7 @@ describe SluggerDeploys::AutoScaling do
 
     it 'returns a list of instances associated with the group' do
       auto_scaling.all_instances.length.should == 4
-      auto_scaling.all_instances.should be_all { |inst| inst.is_a?(SluggerDeploys::Instance) }
+      auto_scaling.all_instances.should be_all { |inst| inst.is_a?(Aerosol::Instance) }
     end
   end
 end

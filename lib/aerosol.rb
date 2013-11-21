@@ -1,19 +1,19 @@
 require 'fog'
 require 'dockly/util'
 
-module SluggerDeploys
+module Aerosol
 end
 
-require 'slugger_deploys/aws'
-require 'slugger_deploys/util'
-require 'slugger_deploys/aws_model'
-require 'slugger_deploys/launch_configuration'
-require 'slugger_deploys/auto_scaling'
-require 'slugger_deploys/instance'
-require 'slugger_deploys/connection'
-require 'slugger_deploys/deploy'
+require 'aerosol/aws'
+require 'aerosol/util'
+require 'aerosol/aws_model'
+require 'aerosol/launch_configuration'
+require 'aerosol/auto_scaling'
+require 'aerosol/instance'
+require 'aerosol/connection'
+require 'aerosol/deploy'
 
-module SluggerDeploys
+module Aerosol
   attr_reader :deploy, :instance, :git_sha
   attr_writer :load_file
 
@@ -37,18 +37,18 @@ module SluggerDeploys
 
   def setup(file = 'deploys.rb')
     {
-      :auto_scalings => SluggerDeploys::AutoScaling.instances,
-      :deploys => SluggerDeploys::Deploy.instances,
-      :launch_configurations => SluggerDeploys::LaunchConfiguration.instances,
-      :sshs => SluggerDeploys::Connection.instances
+      :auto_scalings => Aerosol::AutoScaling.instances,
+      :deploys => Aerosol::Deploy.instances,
+      :launch_configurations => Aerosol::LaunchConfiguration.instances,
+      :sshs => Aerosol::Connection.instances
     }
   end
 
   {
-    :auto_scaling => SluggerDeploys::AutoScaling,
-    :deploy => SluggerDeploys::Deploy,
-    :launch_configuration => SluggerDeploys::LaunchConfiguration,
-    :ssh => SluggerDeploys::Connection
+    :auto_scaling => Aerosol::AutoScaling,
+    :deploy => Aerosol::Deploy,
+    :launch_configuration => Aerosol::LaunchConfiguration,
+    :ssh => Aerosol::Connection
   }.each do |method, klass|
     define_method(method) do |sym, &block|
       if block.nil?
@@ -70,5 +70,5 @@ module SluggerDeploys
                   :auto_scalings, :launch_configurations, :deploys, :sshs
 end
 
-require 'slugger_deploys/runner'
-require 'slugger_deploys/rake_task'
+require 'aerosol/runner'
+require 'aerosol/rake_task'

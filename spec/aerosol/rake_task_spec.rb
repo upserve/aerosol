@@ -3,7 +3,7 @@ require 'spec_helper'
 describe 'Rake' do
   describe 'load' do
     before do
-      SluggerDeploys::Util.stub(:git_sha)
+      Aerosol::Util.stub(:git_sha)
     end
 
     context 'when the deploys.rb file does not exist' do

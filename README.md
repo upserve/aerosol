@@ -1,7 +1,7 @@
-SluggerDeploys
+Aerosol
 =======
 
-SluggerDeploys is a gem made to ease the pain of deploying. For this gem to be useful, quite a few assumptions are made about your stack:
+Aerosol is a gem made to ease the pain of deploying. For this gem to be useful, quite a few assumptions are made about your stack:
 
 - You are using `ActiveRecord` if you're deploying a Rails repo
 - You use AWS
@@ -187,27 +187,27 @@ It has the following references:
 - `ssh`
     - required: `true`
     - default: `nil`
-    - class: SluggerDeploys::Connection
+    - class: Aerosol::Connection
     - description: configuration to ssh into your new instances
 - `migration_ssh`
     - required: `false`
     - default: `nil`
-    - class: SluggerDeploys::Connection
+    - class: Aerosol::Connection
     - description: configuration to ssh into to run a migration
 - `local_ssh`
     - required: `false`
     - default: `nil`
-    - class: SluggerDeploys::Connection
+    - class: Aerosol::Connection
     - description: configuration to ssh into from your local machine (generates ssh command for you)
 - `package`
     - required: `true`
     - default: `nil`
-    - class: SluggerDeploys::Deb
+    - class: Aerosol::Deb
     - description: the deb package associated with this deploy
 - `auto_scaling`
     - required: `true`
     - default: `nil`
-    - class: SluggerDeploys::AutoScaling
+    - class: Aerosol::AutoScaling
     - description: the auto scaling config associated with this deploy
 
 

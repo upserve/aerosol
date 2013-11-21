@@ -1,7 +1,7 @@
 require 'net/ssh'
 require 'net/ssh/gateway'
 
-class SluggerDeploys::Connection
+class Aerosol::Connection
   include Dockly::Util::DSL
   include Dockly::Util::Logger::Mixin
 

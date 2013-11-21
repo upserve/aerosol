@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-describe SluggerDeploys::AWS do
-  subject { SluggerDeploys::AWS }
+describe Aerosol::AWS do
+  subject { Aerosol::AWS }
 
   describe '#reset_cache!' do
     before do
