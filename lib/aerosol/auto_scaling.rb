@@ -106,6 +106,23 @@ class Aerosol::AutoScaling
        .last
   end
 
+  def to_s
+    %{Aerosol::AutoScaling { \
+"aws_identifier" => "#{aws_identifier}", \
+"availability_zones" => "#{availability_zones}", \
+"min_size" => "#{min_size}", \
+"max_size" => "#{max_size}", \
+"default_cooldown" => "#{default_cooldown}", \
+"desired_capacity" => "#{desired_capacity}", \
+"health_check_grace_period" => "#{health_check_grace_period}", \
+"health_check_type" => "#{health_check_type}", \
+"load_balancer_names" => "#{load_balancer_names}", \
+"placement_group" => "#{placement_group}", \
+"tags" => #{tags.to_s}, \
+"created_time" => "#{created_time}" \
+}}
+  end
+
 private
   def conn
     Aerosol::AWS.auto_scaling

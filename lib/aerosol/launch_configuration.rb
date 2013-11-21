@@ -33,13 +33,13 @@ class Aerosol::LaunchConfiguration
   def create!
     ensure_present! :ami, :instance_type
 
-    info self.inspect
+    info self.to_s
     conn.create_launch_configuration(ami, instance_type, aws_identifier, create_options)
     sleep 10 # TODO: switch to fog models and .wait_for { ready? }
   end
 
   def destroy!
-    info self.inspect
+    info self.to_s
     conn.delete_launch_configuration(aws_identifier)
   end
 
@@ -56,6 +56,21 @@ class Aerosol::LaunchConfiguration
                 .body
                 .[]('DescribeLaunchConfigurationsResult')
                 .[]('LaunchConfigurations')
+  end
+
+  def to_s
+    %{Aerosol::LaunchConfiguration { \
+"aws_identifier" => "#{aws_identifier}", \
+"ami" => "#{ami}", \
+"instance_type" => "#{instance_type}", \
+"security_groups" => #{security_groups.to_s}, \
+"user_data" => "#{user_data}", \
+"iam_role" => "#{iam_role}", \
+"kernel_id" => "#{kernel_id}", \
+"key_name" => "#{key_name}", \
+"spot_price" => "#{spot_price}", \
+"created_time" => "#{created_time}" \
+}}
   end
 
 private
