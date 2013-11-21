@@ -17,7 +17,7 @@ module Aerosol
   attr_reader :deploy, :instance, :git_sha
   attr_writer :load_file
 
-  LOAD_FILE = 'deploys.rb'
+  LOAD_FILE = 'aerosol.rb'
 
   def load_file
     @load_file || LOAD_FILE
@@ -35,7 +35,7 @@ module Aerosol
     end
   end
 
-  def setup(file = 'deploys.rb')
+  def setup
     {
       :auto_scalings => Aerosol::AutoScaling.instances,
       :deploys => Aerosol::Deploy.instances,
