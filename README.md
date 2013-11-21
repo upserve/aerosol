@@ -1,7 +1,7 @@
-SluggerDeploys
+Aerosol
 =======
 
-SluggerDeploys is a gem made to ease the pain of deploying. For this gem to be useful, quite a few assumptions are made about your stack:
+Aerosol is a gem made to ease the pain of deploying. For this gem to be useful, quite a few assumptions are made about your stack:
 
 - You are using `ActiveRecord` if you're deploying a Rails repo
 - You use AWS
@@ -187,27 +187,27 @@ It has the following references:
 - `ssh`
     - required: `true`
     - default: `nil`
-    - class: SluggerDeploys::Connection
+    - class: Aerosol::Connection
     - description: configuration to ssh into your new instances
 - `migration_ssh`
     - required: `false`
     - default: `nil`
-    - class: SluggerDeploys::Connection
+    - class: Aerosol::Connection
     - description: configuration to ssh into to run a migration
 - `local_ssh`
     - required: `false`
     - default: `nil`
-    - class: SluggerDeploys::Connection
+    - class: Aerosol::Connection
     - description: configuration to ssh into from your local machine (generates ssh command for you)
 - `package`
     - required: `true`
     - default: `nil`
-    - class: SluggerDeploys::Deb
+    - class: Aerosol::Deb
     - description: the deb package associated with this deploy
 - `auto_scaling`
     - required: `true`
     - default: `nil`
-    - class: SluggerDeploys::AutoScaling
+    - class: Aerosol::AutoScaling
     - description: the auto scaling config associated with this deploy
 
 
@@ -215,7 +215,7 @@ Demo
 ===
 
 ```ruby
-launch_configuration :slugger_launchconfig do
+launch_configuration :aerosol_launchconfig do
   instance_type 'm1.large'
   ami 'ami-number'
   iam_role 'role-app'
@@ -226,34 +226,34 @@ launch_configuration :slugger_launchconfig do
   # Does not need to be erb, but works really well when it is!
 end
 
-auto_scaling :slugger_autoscaling do
+auto_scaling :aerosol_autoscaling do
   availability_zones ['us-east-1a']
   max_size 1
   min_size 1
-  launch_configuration :slugger_launchconfig
+  launch_configuration :aerosol_launchconfig
   tag 'Name' => 'app'
   tag 'dtdg-group' => 'app'
 end
 
-ssh :slugger_ssh do
+ssh :aerosol_ssh do
   user 'ubuntu'
 end
 
-ssh :slugger_migration do
+ssh :aerosol_migration do
   user 'ubuntu'
   host 'database-instance'
 end
 
-ssh :slugger_local do
+ssh :aerosol_local do
   jump :user => 'ubuntu', :host => 'jumpserver.example.com'
 end
 
-deploy :slugger_deploy do
-  package :slugger_package
-  ssh :slugger_ssh
-  migration_ssh :slugger_migration
-  local_ssh :slugger_local
-  auto_scaling :slugger_autoscaling
+deploy :aerosol_deploy do
+  package :aerosol_package
+  ssh :aerosol_ssh
+  migration_ssh :aerosol_migration
+  local_ssh :aerosol_local
+  auto_scaling :aerosol_autoscaling
   stop_command 'sudo stop app'
   live_check '/version'
   app_port 443

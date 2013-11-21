@@ -1,7 +1,7 @@
 require 'fog/aws'
 
 # This module holds the connections for all AWS services used by the gem.
-module SluggerDeploys::AWS
+module Aerosol::AWS
   extend self
 
   def service(name, klass)

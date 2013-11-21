@@ -1,8 +1,8 @@
-class SluggerDeploys::AutoScaling
-  include SluggerDeploys::AWSModel
+class Aerosol::AutoScaling
+  include Aerosol::AWSModel
   include Dockly::Util::Logger::Mixin
 
-  logger_prefix '[slugger auto_scaling]'
+  logger_prefix '[aerosol auto_scaling]'
   aws_attribute :aws_identifier            => 'AutoScalingGroupName',
                 :availability_zones        => 'AvailabilityZones',
                 :min_size                  => 'MinSize',
@@ -15,7 +15,7 @@ class SluggerDeploys::AutoScaling
                 :placement_group           => 'PlacementGroup',
                 :tag_from_array            => 'Tags',
                 :created_time              => 'CreatedTime'
-  aws_class_attribute :launch_configuration, SluggerDeploys::LaunchConfiguration
+  aws_class_attribute :launch_configuration, Aerosol::LaunchConfiguration
   primary_key :aws_identifier
 
   def initialize(options={}, &block)
@@ -24,7 +24,7 @@ class SluggerDeploys::AutoScaling
 
     tags.merge!(tag) unless tag.nil?
 
-    tags["GitSha"] ||= SluggerDeploys::Util.git_sha
+    tags["GitSha"] ||= Aerosol::Util.git_sha
     tags["Deploy"] ||= name.to_s
   end
 
@@ -33,7 +33,7 @@ class SluggerDeploys::AutoScaling
       raise "You cannot set the aws_identifer directly" unless from_aws
       @aws_identifier = arg
     else
-      @aws_identifier || "#{name}-#{SluggerDeploys::Util.git_sha}"
+      @aws_identifier || "#{name}-#{Aerosol::Util.git_sha}"
     end
   end
 
@@ -74,14 +74,14 @@ class SluggerDeploys::AutoScaling
   end
 
   def all_instances
-    SluggerDeploys::AWS.auto_scaling
+    Aerosol::AWS.auto_scaling
                 .describe_auto_scaling_groups('AutoScalingGroupNames' => self.aws_identifier)
                 .body
                 .[]('DescribeAutoScalingGroupsResult')
                 .[]('AutoScalingGroups')
                 .first
                 .[]('Instances')
-                .map { |instance| SluggerDeploys::Instance.from_hash(instance) }
+                .map { |instance| Aerosol::Instance.from_hash(instance) }
   end
 
   def tag(val)
@@ -93,7 +93,7 @@ class SluggerDeploys::AutoScaling
   end
 
   def self.request_all
-    SluggerDeploys::AWS.auto_scaling
+    Aerosol::AWS.auto_scaling
                 .describe_auto_scaling_groups
                 .body
                 .[]('DescribeAutoScalingGroupsResult')
@@ -106,9 +106,26 @@ class SluggerDeploys::AutoScaling
        .last
   end
 
+  def to_s
+    %{Aerosol::AutoScaling { \
+"aws_identifier" => "#{aws_identifier}", \
+"availability_zones" => "#{availability_zones}", \
+"min_size" => "#{min_size}", \
+"max_size" => "#{max_size}", \
+"default_cooldown" => "#{default_cooldown}", \
+"desired_capacity" => "#{desired_capacity}", \
+"health_check_grace_period" => "#{health_check_grace_period}", \
+"health_check_type" => "#{health_check_type}", \
+"load_balancer_names" => "#{load_balancer_names}", \
+"placement_group" => "#{placement_group}", \
+"tags" => #{tags.to_s}, \
+"created_time" => "#{created_time}" \
+}}
+  end
+
 private
   def conn
-    SluggerDeploys::AWS.auto_scaling
+    Aerosol::AWS.auto_scaling
   end
 
   def create_options
@@ -188,10 +205,10 @@ private
         'privateIpAddress'    => Fog::AWS::Mock.private_ip_address
       }
     end
-    SluggerDeploys::AWS.auto_scaling.data[:auto_scaling_groups][aws_identifier]
+    Aerosol::AWS.auto_scaling.data[:auto_scaling_groups][aws_identifier]
                              .merge!('Instances' => asg_instances)
     all_instances.each do |instance|
-      SluggerDeploys::AWS.compute.data[:instances][instance['instanceId']] = instance
+      Aerosol::AWS.compute.data[:instances][instance['instanceId']] = instance
     end
   end
 end

@@ -1,11 +1,11 @@
-class SluggerDeploys::Instance
-  include SluggerDeploys::AWSModel
+class Aerosol::Instance
+  include Aerosol::AWSModel
 
   aws_attribute :availability_zone => 'AvailabilityZone',
                 :health_status     => 'HealthStatus',
                 :id                => 'InstanceId',
                 :lifecycle_state   => 'LifecycleState'
-  aws_class_attribute :launch_configuration, SluggerDeploys::LaunchConfiguration
+  aws_class_attribute :launch_configuration, Aerosol::LaunchConfiguration
   primary_key :id
 
   def live?
@@ -26,7 +26,7 @@ class SluggerDeploys::Instance
   end
 
   def self.request_all
-    SluggerDeploys::AWS.auto_scaling
+    Aerosol::AWS.auto_scaling
                 .describe_auto_scaling_instances
                 .body
                 .[]('DescribeAutoScalingInstancesResult')
@@ -36,7 +36,7 @@ class SluggerDeploys::Instance
 private
   def describe!
     ensure_present! :id
-    result = SluggerDeploys::AWS.compute.describe_instances('instance-id' => id).body
+    result = Aerosol::AWS.compute.describe_instances('instance-id' => id).body
     result['reservationSet'].first['instancesSet'].first rescue nil
   end
 
