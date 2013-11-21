@@ -1,0 +1,11 @@
+{
+  "built_on": "master",
+  "duration": 42.613,
+  "full_display_name": "gem.slugger_deploys #8 - move_to_aerosol",
+  "id": "2013-11-21_14-35-13",
+  "number": 8,
+  "result": "FAILURE",
+  "status_message": "?",
+  "time": "2013-11-21 14:35:13 -0500",
+  "url": "job/gem.slugger_deploys/8/"
+}
