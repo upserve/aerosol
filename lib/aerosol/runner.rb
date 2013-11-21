@@ -2,7 +2,7 @@ require 'socket'
 require 'active_record'
 require 'grit'
 
-class SluggerDeploys::Runner
+class Aerosol::Runner
   extend Dockly::Util::Delegate
   include Dockly::Util::Logger::Mixin
 
@@ -119,8 +119,8 @@ class SluggerDeploys::Runner
 
   def old_auto_scaling_groups
     require_deploy!
-    SluggerDeploys::LaunchConfiguration.all # load all of the launch configurations first
-    SluggerDeploys::AutoScaling.all.select { |asg|
+    Aerosol::LaunchConfiguration.all # load all of the launch configurations first
+    Aerosol::AutoScaling.all.select { |asg|
       (asg.tags['Deploy'].to_s == auto_scaling.tags['Deploy']) &&
         (asg.tags['GitSha'] != auto_scaling.tags['GitSha'])
     }
@@ -138,7 +138,7 @@ class SluggerDeploys::Runner
   end
 
   def with_deploy(name)
-    unless dep = SluggerDeploys::Deploy[name]
+    unless dep = Aerosol::Deploy[name]
       raise "No deploy named '#{name}'"
     end
     original = @deploy
@@ -152,7 +152,7 @@ class SluggerDeploys::Runner
   end
 
   def git_sha
-    @git_sha ||= SluggerDeploys::Util.git_sha
+    @git_sha ||= Aerosol::Util.git_sha
   end
 
   delegate :ssh, :migration_ssh, :package, :auto_scaling, :stop_command,

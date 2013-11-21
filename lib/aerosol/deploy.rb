@@ -1,4 +1,4 @@
-class SluggerDeploys::Deploy
+class Aerosol::Deploy
   include Dockly::Util::DSL
   include Dockly::Util::Logger::Mixin
 
@@ -8,10 +8,10 @@ class SluggerDeploys::Deploy
                 :continue_if_stop_app_fails, :stop_app_retries,
                 :sleep_before_termination, :post_deploy_command
 
-  dsl_class_attribute :ssh, SluggerDeploys::Connection
-  dsl_class_attribute :migration_ssh, SluggerDeploys::Connection
-  dsl_class_attribute :local_ssh, SluggerDeploys::Connection
-  dsl_class_attribute :auto_scaling, SluggerDeploys::AutoScaling
+  dsl_class_attribute :ssh, Aerosol::Connection
+  dsl_class_attribute :migration_ssh, Aerosol::Connection
+  dsl_class_attribute :local_ssh, Aerosol::Connection
+  dsl_class_attribute :auto_scaling, Aerosol::AutoScaling
 
   default_value :db_config_path, 'config/database.yml'
   default_value :instance_live_grace_period, 30 * 60 # 30 Minutes
@@ -72,7 +72,7 @@ class SluggerDeploys::Deploy
   end
 
   def generate_ssh_commands
-    group = SluggerDeploys::AutoScaling.latest_for_tag('Deploy', name.to_s)
+    group = Aerosol::AutoScaling.latest_for_tag('Deploy', name.to_s)
     raise "Could not find any auto scaling groups for this deploy (#{name})." if group.nil?
 
     ssh_commands = []

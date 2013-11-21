@@ -1,5 +1,5 @@
 require 'rake'
-require 'slugger_deploys'
+require 'aerosol'
 
 $rake_task_logger = Dockly::Util::Logger.new('[slugger rake_task]', STDOUT, false)
 
@@ -9,7 +9,7 @@ class Rake::AutoScalingTask < Rake::Task
   end
 
   def auto_scaling
-    SluggerDeploys.auto_scaling(name.split(':').last.to_sym)
+    Aerosol.auto_scaling(name.split(':').last.to_sym)
   end
 end
 
@@ -25,7 +25,7 @@ namespace :deploys do
   end
 
   namespace :auto_scaling do
-    SluggerDeploys.auto_scalings.values.reject(&:from_aws).each do |inst|
+    Aerosol.auto_scalings.values.reject(&:from_aws).each do |inst|
       auto_scaling inst.name => 'deploys:load' do |name|
         Thread.current[:rake_task] = name
         inst.create
@@ -34,7 +34,7 @@ namespace :deploys do
   end
 
   namespace :ssh do
-    SluggerDeploys.deploys.values.each do |inst|
+    Aerosol.deploys.values.each do |inst|
       task inst.name do |name|
         Thread.current[:rake_task] = name
         inst.generate_ssh_commands.each do |ssh_command|
@@ -47,11 +47,11 @@ namespace :deploys do
   all_deploy_tasks = []
   all_asynch_deploy_tasks = []
 
-  SluggerDeploys.deploys.values.each do |inst|
+  Aerosol.deploys.values.each do |inst|
     namespace :"#{inst.name}" do
       task :run_migration => 'deploys:load' do |name|
         Thread.current[:rake_task] = name
-        SluggerDeploys::Runner.new.with_deploy(inst.name) do |runner|
+        Aerosol::Runner.new.with_deploy(inst.name) do |runner|
           runner.run_migration
         end
       end
@@ -60,21 +60,21 @@ namespace :deploys do
 
       task :wait_for_new_instances => 'deploys:load' do |name|
         Thread.current[:rake_task] = name
-        SluggerDeploys::Runner.new.with_deploy(inst.name) do |runner|
+        Aerosol::Runner.new.with_deploy(inst.name) do |runner|
           runner.wait_for_new_instances
         end
       end
 
       task :stop_old_app => 'deploys:load' do |name|
         Thread.current[:rake_task] = name
-        SluggerDeploys::Runner.new.with_deploy(inst.name) do |runner|
+        Aerosol::Runner.new.with_deploy(inst.name) do |runner|
           runner.stop_app
         end
       end
 
       task :destroy_old_auto_scaling_groups => 'deploys:load' do |name|
         Thread.current[:rake_task] = name
-        SluggerDeploys::Runner.new.with_deploy(inst.name) do |runner|
+        Aerosol::Runner.new.with_deploy(inst.name) do |runner|
           runner.destroy_old_auto_scaling_groups
         end
       end
