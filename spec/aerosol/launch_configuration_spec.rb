@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe SluggerDeploys::LaunchConfiguration do
+describe Aerosol::LaunchConfiguration do
   subject do
     described_class.new do
       name :my_launch_config
@@ -200,7 +200,7 @@ describe SluggerDeploys::LaunchConfiguration do
     subject { described_class }
 
     def destroy_all
-      SluggerDeploys::LaunchConfiguration.instances.values.each do |instance|
+      Aerosol::LaunchConfiguration.instances.values.each do |instance|
         instance.destroy! rescue nil
       end
     end

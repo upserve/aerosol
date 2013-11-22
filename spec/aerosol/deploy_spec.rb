@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe SluggerDeploys::Deploy do
+describe Aerosol::Deploy do
   let!(:ssh) { double(:ssh) }
   subject { described_class.new(:name => :test) }
 

@@ -1,4 +1,4 @@
-module SluggerDeploys::AWSModel
+module Aerosol::AWSModel
   def self.included(base)
     base.instance_eval do
       include Dockly::Util::DSL
@@ -40,8 +40,8 @@ module SluggerDeploys::AWSModel
     end
 
     def aws_class_attribute(name, klass)
-      unless klass.ancestors.include?(SluggerDeploys::AWSModel) || (klass == self)
-        raise '.aws_class_attribute requires a SluggerDeploys::AWSModel that is not the current class.'
+      unless klass.ancestors.include?(Aerosol::AWSModel) || (klass == self)
+        raise '.aws_class_attribute requires a Aerosol::AWSModel that is not the current class.'
       end
 
       dsl_class_attribute(name, klass)
