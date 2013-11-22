@@ -59,6 +59,51 @@ The deploy tasks are within the `aerosol:deploy_name` namespace where deploy_nam
 `aerosol ssh deploy_name` - Same as aerosol:ssh:deploy_name
 `aerosol ssh -r deploy_name` - Runs the ssh command to the first instance available (still prints out the others)
 
+Demo
+----
+
+```ruby
+launch_configuration :launch_config do
+  ami 'ami-1715317e' # Ubuntu 13.04 US-East-1 ebs amd64
+  instance_type 'm1.small'
+  iam_role 'role-app'
+  key_name 'app'
+
+  user_data ERB.new(File.read('startup.sh.erb')).result(binding)
+end
+
+auto_scaling :auto_scaling_group do
+  availability_zones ['us-east-1a']
+  max_size 1
+  min_size 1
+  launch_configuration :launch_config
+end
+
+ssh :ssh do
+  user 'ubuntu'
+end
+
+ssh :migration do
+  user 'ubuntu'
+  host 'dbserver.example.com'
+end
+
+ssh :local do
+  jump :user => 'ubuntu', :host => 'jump.example.com'
+end
+
+deploy :deploy do
+  ssh :ssh
+  migration_ssh :migration
+  local_ssh :local
+  auto_scaling :auto_scaling_group
+  stop_command 'sudo stop app'
+  live_check '/version'
+  app_port 443
+  post_deploy_command 'bundle exec rake postdeploycommand'
+end
+```
+
 The DSL
 -------
 
@@ -305,50 +350,5 @@ This won't perform a migration, will stop the application with 'sudo stop app' a
 It will use the default of waiting 30 minutes for a deploy before failing, and fail if the previous application does not stop correctly.
 
 If the server you're deploying from is not behind the same restrictions a development machine is, add a local SSH connection.  The local connection will be used when generating commands for connecting to the instances.
-
-Demo
-====
-
-```ruby
-launch_configuration :launch_config do
-  ami 'ami-1715317e' # Ubuntu 13.04 US-East-1 ebs amd64
-  instance_type 'm1.small'
-  iam_role 'role-app'
-  key_name 'app'
-
-  user_data ERB.new(File.read('startup.sh.erb')).result(binding)
-end
-
-auto_scaling :auto_scaling_group do
-  availability_zones ['us-east-1a']
-  max_size 1
-  min_size 1
-  launch_configuration :launch_config
-end
-
-ssh :ssh do
-  user 'ubuntu'
-end
-
-ssh :migration do
-  user 'ubuntu'
-  host 'dbserver.example.com'
-end
-
-ssh :local do
-  jump :user => 'ubuntu', :host => 'jump.example.com'
-end
-
-deploy :deploy do
-  ssh :ssh
-  migration_ssh :migration
-  local_ssh :local
-  auto_scaling :auto_scaling_group
-  stop_command 'sudo stop app'
-  live_check '/version'
-  app_port 443
-  post_deploy_command 'bundle exec rake postdeploycommand'
-end
-```
 
 Copyright (c) 2013 Swipely, Inc. See LICENSE.txt for further details.
