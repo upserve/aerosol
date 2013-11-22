@@ -57,6 +57,7 @@ The deploy tasks are within the `aerosol:deploy_name` namespace where deploy_nam
 ### CLI
 
 `aerosol ssh deploy_name` - Same as aerosol:ssh:deploy_name
+
 `aerosol ssh -r deploy_name` - Runs the ssh command to the first instance available (still prints out the others)
 
 Demo
