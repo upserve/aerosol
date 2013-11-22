@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe SluggerDeploys::Connection do
+describe Aerosol::Connection do
   describe '#with_connection' do
     context 'when at least one of the required fields is missing' do
       it 'raises an error' do
@@ -10,7 +10,7 @@ describe SluggerDeploys::Connection do
 
     context 'when all of the required fields are present' do
       subject do
-        SluggerDeploys::Connection.new do
+        Aerosol::Connection.new do
           name :lil_joey_pumpkins
           host 'www.aol.com'
           user 'steve_case'

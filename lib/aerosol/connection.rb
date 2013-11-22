@@ -1,11 +1,11 @@
 require 'net/ssh'
 require 'net/ssh/gateway'
 
-class SluggerDeploys::Connection
+class Aerosol::Connection
   include Dockly::Util::DSL
   include Dockly::Util::Logger::Mixin
 
-  logger_prefix '[slugger connection]'
+  logger_prefix '[aerosol connection]'
   dsl_attribute :user, :host, :jump
 
   def with_connection(&block)

@@ -2,14 +2,14 @@
 
 require 'spec_helper'
 
-describe SluggerDeploys do
-  subject { SluggerDeploys }
+describe Aerosol do
+  subject { Aerosol }
 
   {
-    :auto_scaling => SluggerDeploys::AutoScaling,
-    :deploy => SluggerDeploys::Deploy,
-    :launch_configuration => SluggerDeploys::LaunchConfiguration,
-    :ssh => SluggerDeploys::Connection
+    :auto_scaling => Aerosol::AutoScaling,
+    :deploy => Aerosol::Deploy,
+    :launch_configuration => Aerosol::LaunchConfiguration,
+    :ssh => Aerosol::Connection
   }.each do |name, klass|
     describe ".#{name}" do
       before { subject.send(name, :"runner_test_#{name}") { } }
