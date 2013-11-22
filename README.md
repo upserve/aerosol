@@ -3,7 +3,7 @@ Aerosol
 
 Aerosol is a gem made to ease the pain of deploying. For this gem to be useful, quite a few assumptions are made about your stack:
 
-- You are using `ActiveRecord` if you're deploying a Rails repo
+- You are using `ActiveRecord` if you're deploying a Rails project
 - You use AWS
 
 Getting Started
@@ -28,19 +28,27 @@ Usage
 
 ### Rake Tasks
 
+The deploy tasks are within the `aerosol:deploy_name` namespace where deploy_name is based upon the deploy section detailed below.
+
+#### Full deploy tasks
+
+`all` - Full serial deployment: Run mgiration, create auto scaling group, wait for instances, stop old application, destroy old auto scaling groups and run the post deploy command
+
+`all_asynch` - Same as `all` but runs the migration and create auto scaling groups in parallel
+
 #### The separate deploy rake tasks
 
-`aerosol:deploy_name:run_migration` - Runs the ActiveRecord migration through the SSH connection given
-`aerosol:deploy_name:create_auto_scaling_group` - Creates a new auto scaling group for the current git hash
-`aerosol:deploy_name:wait_for_new_instances` - Waits for instances of the new autoscaling groups to start up
-`aerosol:deploy_name:stop_old_app` - Runs command to shut down the application on the old instances instead of just terminating
-`aerosol:deploy_name:destroy_old_auto_scaling_groups` - Terminates instances with the current tag and different git hash
-`aerosol:deploy_name:run_post_deploy` - Runs a post deploy command
+`run_migration` - Runs the ActiveRecord migration through the SSH connection given
 
-#### The combinations
+`create_auto_scaling_group` - Creates a new auto scaling group for the current git hash
 
-`aerosol:deploy_name:all` - Full serial deployment: Run mgiration, create auto scaling group, wait for instances, stop old application, destroy old auto scaling groups and run the post deploy command
-`aerosol:deploy_name:all_asynch` - Same as `all` but runs the migration and create auto scaling groups in parallel
+`wait_for_new_instances` - Waits for instances of the new autoscaling groups to start up
+
+`stop_old_app` - Runs command to shut down the application on the old instances instead of just terminating
+
+`destroy_old_auto_scaling_groups` - Terminates instances with the current tag and different git hash
+
+`run_post_deploy` - Runs a post deploy command
 
 #### Non-deploy rake tasks
 
@@ -270,12 +278,13 @@ Options:
 - local_ssh - SSH connection from local computer to running instances
 - stop_command - This command is run before an auto scaling group is run to stop your application gracefully
 - live_check - 'Local path to query on the instance to verify the application is running'
-- instance_live_grace_period - The number of seconds to wait for an instance to be live (default: 30 minutes - 1800)
+- instance_live_grace_period - The number of seconds to wait for an instance to be live (default: 30 minutes - 1800 seconds)
 - db_config_path - relative path of your database config file (default: 'config/database.yml')
 - app_port - which port the application is running on
 - stop_app_retries - The number of times to retry stopping the application (default: 2)
 - continue_if_stop_app_fails - When true, will ignore a failure when stopping the application (default: 'false')
 - post_deploy_command - Command run after the deploy has finished
+- sleep_before_termination - Time to wait after the new instance spawns and before terminating the old instance (allow time for external load balancers to start working)
 
 A lot of the options for deployment are required, but we've defined some sane defaults.
 
