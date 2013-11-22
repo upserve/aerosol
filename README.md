@@ -8,6 +8,34 @@ Aerosol is a gem made to ease the pain of deploying. For this gem to be useful, 
 
 Although only a specific type of repository may be used, these assumptions allow us to define a simple DSL to describe your repository.
 
+Usage
+-----
+
+### Rake Tasks
+
+#### The separate deploy rake tasks
+
+`aerosol:deploy_name:run_migration` - Runs the ActiveRecord migration through the SSH connection given
+`aerosol:deploy_name:create_auto_scaling_group` - Creates a new auto scaling group for the current git hash
+`aerosol:deploy_name:wait_for_new_instances` - Waits for instances of the new autoscaling groups to start up
+`aerosol:deploy_name:stop_old_app` - Runs command to shut down the application on the old instances instead of just terminating
+`aerosol:deploy_name:destroy_old_auto_scaling_groups` - Terminates instances with the current tag and different git hash
+`aerosol:deploy_name:run_post_deploy` - Runs a post deploy command
+
+#### The combinations
+
+`aerosol:deploy_name:all` - Full serial deployment: Run mgiration, create auto scaling group, wait for instances, stop old application, destroy old auto scaling groups and run the post deploy command
+`aerosol:deploy_name:all_asynch` - Same as `all` but runs the migration and create auto scaling groups in parallel
+
+#### Non-deploy rake tasks
+
+`aerosol:ssh:deploy_name` - Prints out ssh command to all instances of the latest deploy
+
+### CLI
+
+`aerosol ssh deploy_name` - Same as aerosol:ssh:deploy_name
+`aerosol ssh -r deploy_name` - Runs the ssh command to the first instance available (still prints out the others)
+
 The DSL
 -------
 
