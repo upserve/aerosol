@@ -1,10 +1,10 @@
 Aerosol
 =======
 
-Aerosol is a gem made to ease the pain of deploying. For this gem to be useful, quite a few assumptions are made about your stack:
+Aerosol eases the pain of deploying to EC2.
 
-- You are using `ActiveRecord` if you're deploying a Rails project
-- You use AWS
+It deploys fresh instances every time.
+Aerosol uses auto scaling groups to orchestrate the startup of your application and gracefully shutdowns down the old.
 
 Getting Started
 ---------------
