@@ -32,9 +32,9 @@ The deploy tasks are within the `aerosol:deploy_name` namespace where deploy_nam
 
 #### Full deploy tasks
 
-`all` - Full serial deployment: Run mgiration, create auto scaling group, wait for instances, stop old application, destroy old auto scaling groups and run the post deploy command
+`all` - Full serial deployment: Run migration, create auto scaling group, wait for instances, stop old application, destroy old auto scaling groups and run the post deploy command
 
-`all_asynch` - Same as `all` but runs the migration and create auto scaling groups in parallel
+`all_asynch` - Same as `all` but runs the migration and creates auto scaling groups in parallel
 
 #### The separate deploy rake tasks
 
