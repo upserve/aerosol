@@ -4,10 +4,7 @@
 Aerosol
 =======
 
-Aerosol eases the pain of deploying to EC2.
-
-It deploys fresh instances every time.
-Aerosol uses auto scaling groups to orchestrate the startup of your application and gracefully shutdowns down the old.
+Aerosol orchestrates instance-based-deploys.  Start new EC2 instances running your app every release, using auto scaling groups to orchestrate the startup of the new version and the graceful shutdown of the old version.
 
 Getting Started
 ---------------
