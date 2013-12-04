@@ -1,3 +1,4 @@
+[![Gem Version](https://badge.fury.io/rb/aerosol.png)](http://badge.fury.io/rb/aerosol)
 [![Build Status](https://travis-ci.org/swipely/aerosol.png)](https://travis-ci.org/swipely/aerosol)
 
 Aerosol
