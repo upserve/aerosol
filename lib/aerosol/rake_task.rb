@@ -97,10 +97,12 @@ namespace :aerosol do
       desc "Runs migration and creates auto scaling groups"
       task :all_prep => [:run_migration, :create_auto_scaling_group]
 
-      desc "Waits for new instances, stops old application, destroys old auto scaling groups and runs the post deploy command"
+      desc "Waits for new instances, stops old application, destroys old auto scaling groups "\
+           "and runs the post deploy command"
       task :all_release => [:wait_for_new_instances, :stop_old_app, :destroy_old_auto_scaling_groups, :run_post_deploy]
 
-      desc "Run migration, create auto scaling group, wait for instances, stop old application, destroy old auto scaling groups and run the post deploy command"
+      desc "Run migration, create auto scaling group, wait for instances, stop old application, "\
+           "destroy old auto scaling groups and run the post deploy command"
       task :all => [:all_prep, :all_release]
       all_deploy_tasks << "aerosol:#{inst.name}:all"
 
