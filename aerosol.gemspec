@@ -7,6 +7,7 @@ Gem::Specification.new do |gem|
   gem.description   = %q{Instance-based deploys made easy}
   gem.summary       = %q{Instance-based deploys made easy}
   gem.homepage      = "https://github.com/swipely/aerosol"
+  gem.license       = 'MIT'
 
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
