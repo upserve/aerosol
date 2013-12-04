@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/swipely/aerosol.png)](https://travis-ci.org/swipely/aerosol)
+
 Aerosol
 =======
 
