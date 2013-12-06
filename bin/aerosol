@@ -2,7 +2,7 @@
 
 require 'rubygems'
 $: << File.join(File.dirname(__FILE__), "..", "lib")
-require 'slugger_deploys'
-require 'slugger_deploys/cli'
+require 'aerosol'
+require 'aerosol/cli'
 
-SluggerDeploys::Cli.run
+Aerosol::Cli.run
