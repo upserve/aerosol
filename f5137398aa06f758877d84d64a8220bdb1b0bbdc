@@ -1,11 +1,11 @@
 {
   "built_on": "master",
-  "duration": 66.047,
-  "full_display_name": "gem.slugger_deploys #79 - master",
-  "id": "2014-02-02_06-59-56",
-  "number": 79,
+  "duration": 66.14,
+  "full_display_name": "gem.slugger_deploys #80 - master",
+  "id": "2014-02-03_06-58-32",
+  "number": 80,
   "result": "SUCCESS",
   "status_message": "?",
-  "time": "2014-02-02 06:59:56 -0500",
-  "url": "job/gem.slugger_deploys/79/"
+  "time": "2014-02-03 06:58:32 -0500",
+  "url": "job/gem.slugger_deploys/80/"
 }
