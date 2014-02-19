@@ -112,17 +112,32 @@ class Aerosol::Runner
     info "destroyed old autoscaling groups"
   end
 
+  def destroy_new_auto_scaling_groups
+    require_deploy!
+    info "destroying autoscaling groups created for this sha"
+    new_auto_scaling_groups.map(&:destroy)
+    info "destroyed new autoscaling groups"
+  end
+
   def old_instances
     require_deploy!
     old_auto_scaling_groups.map(&:launch_configuration).compact.map(&:all_instances).flatten.compact
   end
 
   def old_auto_scaling_groups
+    select_auto_scaling_groups { |asg| asg.tags['GitSha'] != auto_scaling.tags['GitSha'] }
+  end
+
+  def new_auto_scaling_groups
+    select_auto_scaling_groups { |asg| asg.tags['GitSha'] == auto_scaling.tags['GitSha'] }
+  end
+
+  def select_auto_scaling_groups(&block)
     require_deploy!
     Aerosol::LaunchConfiguration.all # load all of the launch configurations first
     Aerosol::AutoScaling.all.select { |asg|
       (asg.tags['Deploy'].to_s == auto_scaling.tags['Deploy']) &&
-        (asg.tags['GitSha'] != auto_scaling.tags['GitSha'])
+        (block.nil? ? true : block.call(asg))
     }
   end
 
