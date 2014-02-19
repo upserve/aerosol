@@ -86,6 +86,14 @@ namespace :aerosol do
         end
       end
 
+      desc "Terminates instances with the current tag and current git hash"
+      task :destroy_new_auto_scaling_groups => 'aerosol:load' do |name|
+        Thread.current[:rake_task] = name
+        Aerosol::Runner.new.with_deploy(inst.name) do |runner|
+          runner.destroy_new_auto_scaling_groups
+        end
+      end
+
       desc "Runs a post deploy command"
       task :run_post_deploy => 'aerosol:load' do |name|
         Thread.current[:rake_task] = name
