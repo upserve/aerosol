@@ -322,7 +322,7 @@ describe Aerosol::Runner do
     end
   end
 
-  describe '#old_auto_scaling_groups' do
+  describe '#old_auto_scaling_groups/#new_auto_scaling_groups' do
     let!(:asg1) do
       Aerosol::AutoScaling.new! do
         name :destroy_old_asgs_auto_scaling_group_1
@@ -369,8 +369,9 @@ describe Aerosol::Runner do
       Aerosol::AutoScaling.stub(:all).and_return([asg1, asg2, asg3])
     end
 
-    it 'returns the old groups from this app' do
+    it 'returns the old and new groups from this app' do
       subject.old_auto_scaling_groups.should == [asg2]
+      subject.new_auto_scaling_groups.should == [asg1]
     end
   end
 end
