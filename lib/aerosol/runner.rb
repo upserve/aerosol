@@ -28,6 +28,7 @@ class Aerosol::Runner
         info "forwarding 127.0.0.1:#{port} --> #{host}:#{db_port}"
         session.forward.local(port, host, db_port)
         child = fork do
+          GC.disable
           with_prefix('child:') do |logger|
             logger.debug "establishing connection"
             ActiveRecord::Base.establish_connection(original_config.merge(
@@ -37,6 +38,7 @@ class Aerosol::Runner
             logger.info "running migration"
             ActiveRecord::Migrator.migrate(%w[db/migrate])
           end
+          GC.enable
         end
         debug "waiting for child"
         exitstatus = nil
