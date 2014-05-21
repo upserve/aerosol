@@ -6,7 +6,8 @@ class Aerosol::Deploy
   dsl_attribute :stop_command, :db_config_path,
                 :instance_live_grace_period, :app_port,
                 :continue_if_stop_app_fails, :stop_app_retries,
-                :sleep_before_termination, :post_deploy_command
+                :sleep_before_termination, :post_deploy_command,
+                :ssl
 
   dsl_class_attribute :ssh, Aerosol::Connection
   dsl_class_attribute :migration_ssh, Aerosol::Connection
@@ -18,6 +19,7 @@ class Aerosol::Deploy
   default_value :continue_if_stop_app_fails, false
   default_value :stop_app_retries, 2
   default_value :sleep_before_termination, 20
+  default_value :ssl, false
 
   def live_check(arg = nil)
     case
@@ -29,6 +31,10 @@ class Aerosol::Deploy
       @live_check = "/#{arg}"
     end
     @live_check
+  end
+
+  def live_check_url
+    [ssl ? 'https' : 'http', '://localhost:', app_port, live_check].join
   end
 
   def do_not_migrate!

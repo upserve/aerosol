@@ -77,7 +77,17 @@ class Aerosol::Runner
     ssh.host(instance.public_hostname)
     success = false
     ssh.with_connection do |session|
-      ret = ssh_exec!(session, "wget -q 'http://localhost:#{app_port}#{live_check}' -O /dev/null")
+      command = [
+        'wget',
+        '-q',
+        # Since we're hitting localhost, the cert will always be invalid, so don't try to check it.
+        deploy.ssl ? '--no-check-certificate' : nil,
+        "'#{deploy.live_check_url}'",
+        '-O',
+        '/dev/null'
+      ].compact.join(' ')
+
+      ret = ssh_exec!(session, command)
       success = ret[:exit_status].zero?
     end
     success
