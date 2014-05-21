@@ -280,6 +280,7 @@ Options:
 - placement_group - Physical location of your cluster placement group created in EC2
 - tag - A hash of tags for the instances in the group
 - launch_configuration - A reference to the launch configuration used by this auto scaling group
+- vpc_zone_identifier - A comma-separated list of subnet identifiers of Amazon Virtual Private Clouds
 
 Auto scaling groups only require an availability zone, a min and max size, and a launch configuration.
 
