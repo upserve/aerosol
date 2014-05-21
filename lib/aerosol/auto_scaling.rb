@@ -14,7 +14,8 @@ class Aerosol::AutoScaling
                 :load_balancer_names       => 'LoadBalancerNames',
                 :placement_group           => 'PlacementGroup',
                 :tag_from_array            => 'Tags',
-                :created_time              => 'CreatedTime'
+                :created_time              => 'CreatedTime',
+                :vpc_zone_identifier       => 'VPCZoneIdentifier'
   aws_class_attribute :launch_configuration, Aerosol::LaunchConfiguration
   primary_key :aws_identifier
 
@@ -136,7 +137,8 @@ private
       'HealthCheckType' => health_check_type,
       'LoadBalancerNames' => load_balancer_names,
       'PlacementGroup' => placement_group,
-      'Tags' => tags
+      'Tags' => tags,
+      'VPCZoneIdentifier' => vpc_zone_identifier
     }.reject { |k, v| v.nil? }
   end
 
