@@ -40,11 +40,15 @@ describe Aerosol::AutoScaling do
       let(:availability_zone) { 'US' }
       let(:min_size) { 1 }
       let(:max_size) { 10 }
-      let(:options) { { :name => :my_group,
-                        :launch_configuration => launch_configuration.name,
-                        :availability_zones => [availability_zone],
-                        :min_size => 1,
-                        :max_size => 10 } }
+      let(:options) {
+        { :name => :my_group,
+          :launch_configuration => launch_configuration.name,
+          :availability_zones => [availability_zone],
+          :min_size => 1,
+          :max_size => 10,
+          :vpc_zone_identifier => 'subnet-deadbeef,subnet-00112233'
+        }
+      }
 
       subject { Aerosol::AutoScaling.new!(options) }
       before { subject.tag :my_group => '1' }
