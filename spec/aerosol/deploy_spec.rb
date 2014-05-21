@@ -139,4 +139,33 @@ describe Aerosol::Deploy do
       end
     end
   end
+
+  describe '#live_check_url' do
+    context 'when SSL is not enabled' do
+      subject {
+        Aerosol::Deploy.new do
+          app_port 5000
+          live_check '/test'
+        end
+      }
+
+      it 'returns an http url' do
+        expect(subject.live_check_url).to eq('http://localhost:5000/test')
+      end
+    end
+
+    context 'when SSL is enabled' do
+      subject {
+        Aerosol::Deploy.new do
+          app_port 4000
+          live_check 'check'
+          ssl true
+        end
+      }
+
+      it 'returns an https url' do
+        expect(subject.live_check_url).to eq('https://localhost:4000/check')
+      end
+    end
+  end
 end
