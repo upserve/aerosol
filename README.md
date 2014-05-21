@@ -331,6 +331,7 @@ Options:
 - continue_if_stop_app_fails - When true, will ignore a failure when stopping the application (default: 'false')
 - post_deploy_command - Command run after the deploy has finished
 - sleep_before_termination - Time to wait after the new instance spawns and before terminating the old instance (allow time for external load balancers to start working)
+- ssl - Boolean that enables/disables ssl when doing the live check (default: 'false').
 
 A lot of the options for deployment are required, but we've defined some sane defaults.
 
