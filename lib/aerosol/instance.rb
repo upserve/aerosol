@@ -17,6 +17,10 @@ class Aerosol::Instance
     description['dnsName']
   end
 
+  def private_ip_address
+    description['privateIpAddress']
+  end
+
   def ami
     description['imageId']
   end
