@@ -6,7 +6,8 @@ class Aerosol::Connection
   include Dockly::Util::Logger::Mixin
 
   logger_prefix '[aerosol connection]'
-  dsl_attribute :user, :host, :jump
+  dsl_attribute :user, :host, :jump, :use_private_ip
+  default_value :use_private_ip, false
 
   def with_connection(&block)
     ensure_present! :user, :host
