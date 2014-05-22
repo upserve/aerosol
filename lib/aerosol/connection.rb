@@ -12,6 +12,10 @@ class Aerosol::Connection
   def with_connection(&block)
     ensure_present! :user, :host
 
+    unless host.is_a? String
+      host = :use_private_ip ? host.private_ip_address : host.public_hostname
+    end
+
     if jump
       info "connecting to gateway #{jump[:user] || user}@#{jump[:host]}"
       gateway = Net::SSH::Gateway.new(jump[:host], jump[:user] || user, :forward_agent => true)

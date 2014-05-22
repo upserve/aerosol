@@ -74,7 +74,7 @@ class Aerosol::Runner
   def healthy?(instance)
     return false unless instance.live?
 
-    ssh.host(instance.public_hostname)
+    ssh.host(instance)
     success = false
     ssh.with_connection do |session|
       command = [
@@ -190,7 +190,7 @@ private
 
   def stop_one_app(instance)
     debug "attempting to stop app on: #{instance.public_hostname}"
-    ssh.host(instance.public_hostname)
+    ssh.host(instance)
     ssh.with_connection do |session|
       session.exec!(stop_command)
       session.loop
