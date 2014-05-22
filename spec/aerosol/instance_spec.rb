@@ -52,5 +52,6 @@ describe Aerosol::Instance do
     end
 
     its(:public_hostname) { should_not be_nil }
+    its(:private_ip_address) { should_not be_nil }
   end
 end
