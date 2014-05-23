@@ -10,11 +10,19 @@ class Aerosol::Instance
 
   def live?
     describe_again
-    !!public_hostname
+    instance_state_name == 'running'
+  end
+
+  def instance_state_name
+    description['instanceState']['name']
   end
 
   def public_hostname
     description['dnsName']
+  end
+
+  def private_ip_address
+    description['privateIpAddress']
   end
 
   def ami
