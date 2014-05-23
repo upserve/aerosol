@@ -48,9 +48,8 @@ class Aerosol::AutoScaling
   end
 
   def create!
-    ensure_present! :availability_zones,
-                    :launch_configuration,
-                    :max_size, :min_size
+    ensure_present! :launch_configuration, :max_size, :min_size
+    raise 'availability_zones or vpc_zone_identifier must be set' if [availability_zones, vpc_zone_identifier].none?
 
     info "creating auto scaling group"
     launch_configuration.create
