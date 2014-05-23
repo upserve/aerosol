@@ -11,8 +11,8 @@ class Aerosol::Connection
   def with_connection(&block)
     ensure_present! :user, :host
 
-    unless host.is_a? String
-      host = host.public_hostname || host.private_ip_address
+    unless self.host.is_a? String
+      host = self.host.public_hostname || self.host.private_ip_address
     end
 
     if jump
