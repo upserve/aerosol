@@ -3,16 +3,17 @@ class Aerosol::LaunchConfiguration
   include Dockly::Util::Logger::Mixin
 
   logger_prefix '[aerosol launch_configuration]'
-  aws_attribute :aws_identifier  => 'LaunchConfigurationName',
-                :ami             => 'ImageId',
-                :instance_type   => 'InstanceType',
-                :security_groups => 'SecurityGroups',
-                :user_data       => 'UserData',
-                :iam_role        => 'IamInstanceProfile',
-                :kernel_id       => 'KernelId',
-                :key_name        => 'KeyName',
-                :spot_price      => 'SpotPrice',
-                :created_time    => 'CreatedTime'
+  aws_attribute :aws_identifier              => 'LaunchConfigurationName',
+                :ami                         => 'ImageId',
+                :instance_type               => 'InstanceType',
+                :security_groups             => 'SecurityGroups',
+                :user_data                   => 'UserData',
+                :iam_role                    => 'IamInstanceProfile',
+                :kernel_id                   => 'KernelId',
+                :key_name                    => 'KeyName',
+                :spot_price                  => 'SpotPrice',
+                :created_time                => 'CreatedTime',
+                :associate_public_ip_address => 'AssociatePublicIpAddress'
 
   primary_key :aws_identifier
   default_value(:security_groups) { [] }
@@ -81,7 +82,8 @@ private
       'KeyName' => key_name,
       'SecurityGroups' => security_groups,
       'SpotPrice' => spot_price,
-      'UserData' => Aerosol::Util.strip_heredoc(user_data || '')
+      'UserData' => Aerosol::Util.strip_heredoc(user_data || ''),
+      'AssociatePublicIpAddress' => associate_public_ip_address
     }.reject { |k, v| v.nil? }
   end
 
