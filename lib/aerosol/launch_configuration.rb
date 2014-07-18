@@ -18,12 +18,18 @@ class Aerosol::LaunchConfiguration
   primary_key :aws_identifier
   default_value(:security_groups) { [] }
 
+  def default_identifier
+    iden = ["#{name}-#{Aerosol::Util.git_sha}"]
+    iden = [Aerosol.namespace, "-"] + iden if Aerosol.namespace
+    iden.join
+  end
+
   def aws_identifier(arg = nil)
     if arg
       raise "You cannot set the aws_identifer directly" unless from_aws
       @aws_identifier = arg
     else
-      @aws_identifier || "#{name}-#{Aerosol::Util.git_sha}"
+      @aws_identifier || default_identifier
     end
   end
 
