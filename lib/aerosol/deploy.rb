@@ -78,7 +78,7 @@ class Aerosol::Deploy
   end
 
   def generate_ssh_commands
-    group = Aerosol::AutoScaling.latest_for_tag('Deploy', name.to_s)
+    group = Aerosol::AutoScaling.latest_for_tag('Deploy', auto_scaling.name.to_s)
     raise "Could not find any auto scaling groups for this deploy (#{name})." if group.nil?
 
     ssh_commands = []
