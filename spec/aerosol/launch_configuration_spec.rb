@@ -14,6 +14,27 @@ describe Aerosol::LaunchConfiguration do
   end
   before { subject.stub(:sleep) }
 
+  describe "#aws_identifier" do
+    context "with no namespace set" do
+      let(:identifier) { "my_launch_config-#{Aerosol::Util.git_sha}" }
+      it "returns a normal identifier" do
+        expect(subject.aws_identifier).to eq(identifier)
+      end
+    end
+
+    context "with a namespace set" do
+      let(:namespace) { "test" }
+      let(:identifier) { "#{namespace}-my_launch_config-#{Aerosol::Util.git_sha}" }
+
+      before { Aerosol.namespace namespace }
+      after { Aerosol.instance_variable_set(:"@namespace", nil) }
+
+      it "returns a namespaced identifier" do
+        expect(subject.aws_identifier).to eq(identifier)
+      end
+    end
+  end
+
   describe '#security_group' do
     subject { described_class.new!(:name => 'conf-conf-conf') }
 
