@@ -14,8 +14,7 @@ module Aerosol::AWSModel
   end
 
   def default_identifier
-    iden = ""
-    iden += "#{Aerosol.namespace}-" if Aerosol.namespace
+    iden = Aerosol.namespace ? "#{Aerosol.namespace}-" : ""
     iden += "#{name}-#{Aerosol::Util.git_sha}"
   end
 
