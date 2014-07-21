@@ -146,10 +146,11 @@ class Aerosol::Runner
   def select_auto_scaling_groups(&block)
     require_deploy!
     Aerosol::LaunchConfiguration.all # load all of the launch configurations first
-    Aerosol::AutoScaling.all.select { |asg|
-      (asg.tags['Deploy'].to_s == auto_scaling.tags['Deploy']) &&
-        (block.nil? ? true : block.call(asg))
-    }
+    asgs = Aerosol::AutoScaling.all.select { |asg| (asg.tags['Deploy'].to_s == auto_scaling.tags['Deploy']) }
+    if Aerosol.namespace
+      asgs.select! { |asg| asg.aws_identifier.start_with? Aerosol.namespace }
+    end
+    asgs.select { |asg| (block.nil? ? true : block.call(asg)) }
   end
 
   def new_instances
