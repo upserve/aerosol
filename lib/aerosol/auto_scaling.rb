@@ -29,12 +29,6 @@ class Aerosol::AutoScaling
     tags["Deploy"] ||= name.to_s
   end
 
-  def default_identifier
-    iden = ["#{name}-#{Aerosol::Util.git_sha}"]
-    iden = [Aerosol.namespace, "-"] + iden if Aerosol.namespace
-    iden.join
-  end
-
   def aws_identifier(arg = nil)
     if arg
       raise "You cannot set the aws_identifer directly" unless from_aws
