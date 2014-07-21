@@ -362,6 +362,22 @@ describe Aerosol::AutoScaling do
         it 'returns the group that was created last' do
           subject.latest_for_tag('Deploy', 'my-deploy').should == group2
         end
+
+        context 'but only one is in the namespace' do
+          let(:namespace) { "test" }
+          let(:group1) { double(:tags => { 'Deploy' => 'my-deploy' },
+                                :created_time => Time.parse('01-01-2013'),
+                                :aws_identifier => 'test-namespace') }
+          let(:group2) { double(:tags => { 'Deploy' => 'my-deploy' },
+                                :created_time => Time.parse('02-01-2013'),
+                                :aws_identifier => 'test2-namespace') }
+          before { Aerosol.namespace namespace }
+          after { Aerosol.instance_variable_set(:"@namespace", nil) }
+
+          it 'returns the group that was created last' do
+            subject.latest_for_tag('Deploy', 'my-deploy').should == group1
+          end
+        end
       end
     end
   end

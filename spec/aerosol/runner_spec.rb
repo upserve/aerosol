@@ -373,5 +373,27 @@ describe Aerosol::Runner do
       subject.old_auto_scaling_groups.should == [asg2]
       subject.new_auto_scaling_groups.should == [asg1]
     end
+
+    context "when it has a namespace" do
+      before { Aerosol.namespace "test" }
+      after { Aerosol.instance_variable_set(:"@namespace", nil) }
+
+      let!(:asg2) do
+        Aerosol::AutoScaling.new! do
+          name :destroy_old_asgs_auto_scaling_group_2
+          availability_zones 'us-east-1'
+          min_size 0
+          max_size 3
+          tag 'Deploy' => 'destroy_old_asgs_deploy', 'GitSha' => '1234567'
+          stub(:sleep)
+          stub(:aws_identifier).and_return("test-2")
+        end
+      end
+
+      it 'returns the old and new groups from this app' do
+        subject.old_auto_scaling_groups.should == [asg2]
+        subject.new_auto_scaling_groups.should == []
+      end
+    end
   end
 end
