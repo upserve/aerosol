@@ -14,6 +14,33 @@ describe Aerosol::AutoScaling do
   subject { described_class.new! }
   before { subject.stub(:sleep) }
 
+  describe "#aws_identifier" do
+    before do
+      subject.instance_eval do
+        name :my_auto_scaling
+      end
+    end
+
+    context "with no namespace set" do
+      let(:identifier) { "my_auto_scaling-#{Aerosol::Util.git_sha}" }
+      it "returns a normal identifier" do
+        expect(subject.aws_identifier).to eq(identifier)
+      end
+    end
+
+    context "with a namespace set" do
+      let(:namespace) { "test" }
+      let(:identifier) { "#{namespace}-my_auto_scaling-#{Aerosol::Util.git_sha}" }
+
+      before { Aerosol.namespace namespace }
+      after { Aerosol.instance_variable_set(:"@namespace", nil) }
+
+      it "returns a namespaced identifier" do
+        expect(subject.aws_identifier).to eq(identifier)
+      end
+    end
+  end
+
   describe '#create!' do
     context 'when none of the required options are set' do
       it 'raises an error' do

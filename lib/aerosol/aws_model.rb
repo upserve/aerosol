@@ -13,6 +13,11 @@ module Aerosol::AWSModel
     super
   end
 
+  def default_identifier
+    iden = Aerosol.namespace ? "#{Aerosol.namespace}-" : ""
+    iden += "#{name}-#{Aerosol::Util.git_sha}"
+  end
+
   def create
     raise '#create! must be defined to use #create' unless respond_to?(:create!)
     create! unless exists?
