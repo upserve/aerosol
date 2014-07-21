@@ -2,19 +2,16 @@ require 'fog'
 require 'dockly/util'
 
 module Aerosol
-end
+  require 'aerosol/aws'
+  require 'aerosol/util'
+  require 'aerosol/aws_model'
+  require 'aerosol/launch_configuration'
+  require 'aerosol/auto_scaling'
+  require 'aerosol/instance'
+  require 'aerosol/connection'
+  require 'aerosol/deploy'
 
-require 'aerosol/aws'
-require 'aerosol/util'
-require 'aerosol/aws_model'
-require 'aerosol/launch_configuration'
-require 'aerosol/auto_scaling'
-require 'aerosol/instance'
-require 'aerosol/connection'
-require 'aerosol/deploy'
-
-module Aerosol
-  attr_reader :deploy, :instance, :git_sha
+  attr_reader :deploy, :instance, :git_sha, :namespace
   attr_writer :load_file
 
   LOAD_FILE = 'aerosol.rb'
@@ -32,6 +29,14 @@ module Aerosol
       if File.exists?(load_file)
         instance_eval(IO.read(load_file), load_file)
       end
+    end
+  end
+
+  def namespace(value = nil)
+    if value.nil?
+      @namespace
+    else
+      @namespace = value
     end
   end
 
@@ -67,7 +72,8 @@ module Aerosol
 
   module_function :inst, :load_inst, :setup, :load_file, :load_file=,
                   :auto_scaling,  :launch_configuration,  :deploy,  :ssh, :git_sha,
-                  :auto_scalings, :launch_configurations, :deploys, :sshs
+                  :auto_scalings, :launch_configurations, :deploys, :sshs,
+                  :namespace
 end
 
 require 'aerosol/runner'

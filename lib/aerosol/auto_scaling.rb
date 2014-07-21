@@ -34,7 +34,7 @@ class Aerosol::AutoScaling
       raise "You cannot set the aws_identifer directly" unless from_aws
       @aws_identifier = arg
     else
-      @aws_identifier || "#{name}-#{Aerosol::Util.git_sha}"
+      @aws_identifier || default_identifier
     end
   end
 
