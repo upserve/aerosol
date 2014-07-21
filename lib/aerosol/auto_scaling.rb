@@ -103,7 +103,7 @@ class Aerosol::AutoScaling
   def self.latest_for_tag(key, value)
     tagged_instances = all.select  { |group| group.tags[key] == value }
     if Aerosol.namespace
-      tagged_instances.select! { |group| group.aws_identifier.start_with? Aerosol.namespace }
+      tagged_instances.select! { |group| group.aws_identifier.start_with? "#{Aerosol.namespace}-" }
     end
     tagged_instances.sort_by { |group| group.created_time }.last
   end
