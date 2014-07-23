@@ -68,8 +68,9 @@ class Aerosol::AutoScaling
     conn.delete_auto_scaling_group(aws_identifier, 'ForceDelete' => true)
     begin
       launch_configuration.destroy
-    rescue
+    rescue => ex
       info "Launch Config: #{launch_configuration} for #{aws_identifier} was not deleted."
+      info ex.message
     end
   end
 
