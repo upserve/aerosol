@@ -93,10 +93,24 @@ describe Aerosol::AutoScaling do
         end
 
         it 'creates an auto-scaling group' do
+          expect(subject.tags).to include('Deploy' => 'my_group')
           expect { subject.create! }
               .to change { subject.send(:conn).data[:auto_scaling_groups][subject.aws_identifier].class.to_s }
               .from('NilClass')
               .to('Hash')
+        end
+
+        context "when there is a namespace" do
+          subject do
+            Aerosol.namespace "tags"
+            Aerosol::AutoScaling.new!(options)
+          end
+
+          after { Aerosol.instance_variable_set(:"@namespace", nil) }
+
+          it "includes the namespace" do
+            expect(subject.tags).to include('Deploy' => 'tags-my_group')
+          end
         end
       end
     end
@@ -361,22 +375,6 @@ describe Aerosol::AutoScaling do
 
         it 'returns the group that was created last' do
           subject.latest_for_tag('Deploy', 'my-deploy').should == group2
-        end
-
-        context 'but only one is in the namespace' do
-          let(:namespace) { "test" }
-          let(:group1) { double(:tags => { 'Deploy' => 'my-deploy' },
-                                :created_time => Time.parse('01-01-2013'),
-                                :aws_identifier => 'test-namespace') }
-          let(:group2) { double(:tags => { 'Deploy' => 'my-deploy' },
-                                :created_time => Time.parse('02-01-2013'),
-                                :aws_identifier => 'test2-namespace') }
-          before { Aerosol.namespace namespace }
-          after { Aerosol.instance_variable_set(:"@namespace", nil) }
-
-          it 'returns the group that was created last' do
-            subject.latest_for_tag('Deploy', 'my-deploy').should == group1
-          end
         end
       end
     end
