@@ -26,7 +26,7 @@ class Aerosol::AutoScaling
     tags.merge!(tag) unless tag.nil?
 
     tags["GitSha"] ||= Aerosol::Util.git_sha
-    tags["Deploy"] ||= name.to_s
+    tags["Deploy"] ||= namespaced_name
   end
 
   def aws_identifier(arg = nil)
@@ -39,10 +39,10 @@ class Aerosol::AutoScaling
   end
 
   def exists?
-    info "auto_scaling: needed?: #{name}: " +
+    info "auto_scaling: needed?: #{namespaced_name}: " +
          "checking for auto scaling group: #{aws_identifier}"
     exists = super
-    info "auto scaling: needed?: #{name}: " +
+    info "auto scaling: needed?: #{namespaced_name}: " +
          "#{exists ? 'found' : 'did not find'} auto scaling group: #{aws_identifier}"
     exists
   end
@@ -68,8 +68,9 @@ class Aerosol::AutoScaling
     conn.delete_auto_scaling_group(aws_identifier, 'ForceDelete' => true)
     begin
       launch_configuration.destroy
-    rescue
+    rescue => ex
       info "Launch Config: #{launch_configuration} for #{aws_identifier} was not deleted."
+      info ex.message
     end
   end
 
@@ -102,8 +103,7 @@ class Aerosol::AutoScaling
 
   def self.latest_for_tag(key, value)
     all.select  { |group| group.tags[key] == value }
-       .sort_by { |group| group.created_time }
-       .last
+       .sort_by { |group| group.created_time }.last
   end
 
   def to_s

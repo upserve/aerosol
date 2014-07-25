@@ -13,9 +13,12 @@ module Aerosol::AWSModel
     super
   end
 
+  def namespaced_name
+    Aerosol.namespace ? "#{Aerosol.namespace}-#{name}" : name.to_s
+  end
+
   def default_identifier
-    iden = Aerosol.namespace ? "#{Aerosol.namespace}-" : ""
-    iden += "#{name}-#{Aerosol::Util.git_sha}"
+    "#{namespaced_name}-#{Aerosol::Util.git_sha}"
   end
 
   def create

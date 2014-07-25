@@ -93,10 +93,24 @@ describe Aerosol::AutoScaling do
         end
 
         it 'creates an auto-scaling group' do
+          expect(subject.tags).to include('Deploy' => 'my_group')
           expect { subject.create! }
               .to change { subject.send(:conn).data[:auto_scaling_groups][subject.aws_identifier].class.to_s }
               .from('NilClass')
               .to('Hash')
+        end
+
+        context "when there is a namespace" do
+          subject do
+            Aerosol.namespace "tags"
+            Aerosol::AutoScaling.new!(options)
+          end
+
+          after { Aerosol.instance_variable_set(:"@namespace", nil) }
+
+          it "includes the namespace" do
+            expect(subject.tags).to include('Deploy' => 'tags-my_group')
+          end
         end
       end
     end

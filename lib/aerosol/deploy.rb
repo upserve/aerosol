@@ -78,15 +78,15 @@ class Aerosol::Deploy
   end
 
   def generate_ssh_commands
-    group = Aerosol::AutoScaling.latest_for_tag('Deploy', name.to_s)
+    group = Aerosol::AutoScaling.latest_for_tag('Deploy', auto_scaling.namespaced_name)
     raise "Could not find any auto scaling groups for this deploy (#{name})." if group.nil?
 
     ssh_commands = []
 
     with_prefix("[#{name}]") do |logger|
-      logger.info "found group: #{group.name}"
+      logger.info "found group: #{group.aws_identifier}"
       instances = group.all_instances
-      raise "Could not find any instances for auto scaling group #{group.name}" if instances.empty?
+      raise "Could not find any instances for auto scaling group #{group.namespaced_name}" if instances.empty?
       instances.each do |instance|
         logger.info "printing ssh command for #{instance.public_hostname  || instance.private_ip_address}"
         ssh_commands << generate_ssh_command(instance)
