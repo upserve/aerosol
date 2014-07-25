@@ -48,6 +48,8 @@ The deploy tasks are within the `aerosol:deploy_name` namespace where deploy_nam
 
 `destroy_old_auto_scaling_groups` - Terminates instances with the current tag and different git hash
 
+`destroy_new_auto_scaling_groups` - Terminates instances with the current tag and same git hash
+
 `run_post_deploy` - Runs a post deploy command
 
 #### Non-deploy rake tasks
@@ -64,6 +66,8 @@ Demo
 ----
 
 ```ruby
+namespace :test
+
 launch_configuration :launch_config do
   ami 'ami-1715317e' # Ubuntu 13.04 US-East-1 ebs amd64
   instance_type 'm1.small'
@@ -353,5 +357,16 @@ This won't perform a migration, will stop the application with 'sudo stop app' a
 It will use the default of waiting 30 minutes for a deploy before failing, and fail if the previous application does not stop correctly.
 
 If the server you're deploying from is not behind the same restrictions a development machine is, add a local SSH connection.  The local connection will be used when generating commands for connecting to the instances.
+
+Namespace
+---------
+
+A namespace will enable branches of a main project to be deployed separately without interfering with auto scaling groups, launch configurations or elastic IPs
+
+```ruby
+namespace :test
+```
+
+This will prefix all auto scaling groups and launch configurations with `test-` and also the `Deploy` tag that is on each auto scaling group by default.
 
 Copyright (c) 2013 Swipely, Inc. See LICENSE.txt for further details.
