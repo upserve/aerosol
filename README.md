@@ -66,6 +66,8 @@ Demo
 ----
 
 ```ruby
+namespace :test
+
 launch_configuration :launch_config do
   ami 'ami-1715317e' # Ubuntu 13.04 US-East-1 ebs amd64
   instance_type 'm1.small'
