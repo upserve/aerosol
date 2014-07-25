@@ -67,11 +67,23 @@ class Aerosol::AutoScaling
     info self.inspect
     conn.delete_auto_scaling_group(aws_identifier, 'ForceDelete' => true)
     begin
+      (0..2).each { break if deleting?; sleep 1 }
       launch_configuration.destroy
     rescue => ex
       info "Launch Config: #{launch_configuration} for #{aws_identifier} was not deleted."
       info ex.message
     end
+  end
+
+  def deleting?
+    asgs = conn.describe_auto_scaling_groups("AutoScalingGroupNames" => self.aws_identifier)
+        .body
+        .[]('DescribeAutoScalingGroupsResult')
+        .[]('AutoScalingGroups')
+
+    return true if asgs.empty?
+
+    asgs.first['Status'].to_s.include?('Delete')
   end
 
   def all_instances
