@@ -105,12 +105,25 @@ class Aerosol::AutoScaling
     @tags ||= {}
   end
 
-  def self.request_all
+  def self.request_all_for_token(next_token)
+    options = next_token.nil? ? {} : { 'NexToken' => '' }
     Aerosol::AWS.auto_scaling
-                .describe_auto_scaling_groups
+                .describe_auto_scaling_groups(options)
                 .body
                 .[]('DescribeAutoScalingGroupsResult')
-                .[]('AutoScalingGroups')
+  end
+
+  def self.request_all
+    next_token = nil
+    asgs = []
+
+    begin
+      new_asgs = request_all_for_token(next_token)
+      asgs.concat(new_asgs['AutoScalingGroups'])
+      next_token = new_asgs['NextToken']
+    end while !next_token.nil?
+
+    asgs
   end
 
   def self.latest_for_tag(key, value)
