@@ -217,6 +217,24 @@ describe Aerosol::LaunchConfiguration do
     end
   end
 
+  describe '.request_all' do
+    describe 'repeats until no NextToken' do
+      before do
+        allow(Aerosol::LaunchConfiguration).to receive(:request_all_for_token).with(nil) do
+          { 'LaunchConfigurations' => [1, 4], 'NextToken' => 'token' }
+        end
+
+        allow(Aerosol::LaunchConfiguration).to receive(:request_all_for_token).with('token') do
+          { 'LaunchConfigurations' => [2, 3], 'NextToken' => nil }
+        end
+      end
+
+      it 'should include both autoscaling groups lists' do
+        expect(Aerosol::LaunchConfiguration.request_all).to eq([1,4,2,3])
+      end
+    end
+  end
+
   describe '.all' do
     subject { described_class }
 

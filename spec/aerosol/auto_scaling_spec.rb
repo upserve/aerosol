@@ -228,6 +228,24 @@ describe Aerosol::AutoScaling do
     end
   end
 
+  describe '.request_all' do
+    describe 'repeats until no NextToken' do
+      before do
+        allow(Aerosol::AutoScaling).to receive(:request_all_for_token).with(nil) do
+          { 'AutoScalingGroups' => [1, 4], 'NextToken' => 'token' }
+        end
+
+        allow(Aerosol::AutoScaling).to receive(:request_all_for_token).with('token') do
+          { 'AutoScalingGroups' => [2, 3], 'NextToken' => nil }
+        end
+      end
+
+      it 'should include both autoscaling groups lists' do
+        expect(Aerosol::AutoScaling.request_all).to eq([1,4,2,3])
+      end
+    end
+  end
+
   describe '.all' do
     subject { described_class }
 

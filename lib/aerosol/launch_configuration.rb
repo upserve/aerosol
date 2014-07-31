@@ -51,12 +51,25 @@ class Aerosol::LaunchConfiguration
     }.each(&:description)
   end
 
-  def self.request_all
+  def self.request_all_for_token(next_token)
+    options = next_token.nil? ? {} : { 'NextToken' => next_token }
     Aerosol::AWS.auto_scaling
-                .describe_launch_configurations
+                .describe_launch_configurations(options)
                 .body
                 .[]('DescribeLaunchConfigurationsResult')
-                .[]('LaunchConfigurations')
+  end
+
+  def self.request_all
+    next_token = nil
+    lcs = []
+
+    begin
+      new_lcs = request_all_for_token(next_token)
+      lcs.concat(new_lcs['LaunchConfigurations'])
+      next_token = new_lcs['NextToken']
+    end while !next_token.nil?
+
+    lcs
   end
 
   def to_s
