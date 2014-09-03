@@ -10,6 +10,7 @@ module Aerosol
   require 'aerosol/instance'
   require 'aerosol/connection'
   require 'aerosol/deploy'
+  require 'aerosol/env'
 
   attr_reader :deploy, :instance, :git_sha, :namespace
   attr_writer :load_file
@@ -45,7 +46,8 @@ module Aerosol
       :auto_scalings => Aerosol::AutoScaling.instances,
       :deploys => Aerosol::Deploy.instances,
       :launch_configurations => Aerosol::LaunchConfiguration.instances,
-      :sshs => Aerosol::Connection.instances
+      :sshs => Aerosol::Connection.instances,
+      :envs => Aerosol::Env.instances
     }
   end
 
@@ -53,7 +55,8 @@ module Aerosol
     :auto_scaling => Aerosol::AutoScaling,
     :deploy => Aerosol::Deploy,
     :launch_configuration => Aerosol::LaunchConfiguration,
-    :ssh => Aerosol::Connection
+    :ssh => Aerosol::Connection,
+    :env => Aerosol::Env
   }.each do |method, klass|
     define_method(method) do |sym, &block|
       if block.nil?
@@ -64,7 +67,7 @@ module Aerosol
     end
   end
 
-  [:auto_scalings, :deploys, :launch_configurations, :sshs].each do |method|
+  [:auto_scalings, :deploys, :launch_configurations, :sshs, :envs].each do |method|
     define_method(method) do
       inst[method]
     end
@@ -73,7 +76,7 @@ module Aerosol
   module_function :inst, :load_inst, :setup, :load_file, :load_file=,
                   :auto_scaling,  :launch_configuration,  :deploy,  :ssh, :git_sha,
                   :auto_scalings, :launch_configurations, :deploys, :sshs,
-                  :namespace
+                  :namespace, :env, :envs
 end
 
 require 'aerosol/runner'
