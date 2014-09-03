@@ -49,6 +49,14 @@ namespace :aerosol do
   all_deploy_tasks = []
   all_asynch_deploy_tasks = []
 
+  namespace :env do
+    Aerosol.envs.values.each do |env|
+      desc "Run all of the deploys for #{env.name} in parallel"
+      multitask env.name => env.deploy.map { |dep| "aerosol:#{dep.name}:all" }
+    end
+  end
+
+
   Aerosol.deploys.values.each do |inst|
     namespace :"#{inst.name}" do
       desc "Runs the ActiveRecord migration through the SSH connection given"
