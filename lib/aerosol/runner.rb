@@ -155,9 +155,9 @@ class Aerosol::Runner
   def new_instances
     require_deploy!
     start_time = Time.now
-    while launch_configuration.all_instances.length < auto_scaling.min_size \
-        && (Time.now < (start_time + instance_live_grace_period))
+    while launch_configuration.all_instances.length < auto_scaling.min_size
       info "Waiting for instances to come up"
+      raise if Time.now > (start_time + instance_live_grace_period)
       sleep 10
     end
     launch_configuration.all_instances
