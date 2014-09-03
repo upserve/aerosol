@@ -358,6 +358,31 @@ It will use the default of waiting 30 minutes for a deploy before failing, and f
 
 If the server you're deploying from is not behind the same restrictions a development machine is, add a local SSH connection.  The local connection will be used when generating commands for connecting to the instances.
 
+Environments
+------------
+
+An environment is a set of deploys that may be run in parallel.
+This can be useful if you, for example, want to deploy a load balancer at the same time you deploy your backend application.
+
+Options:
+
+- deploy - Add a deploy to this environment.
+
+A basic environment (assuming there is already a deploy named `:quick_app` and another named `:quick_app_worker`):
+
+```ruby
+env :staging do
+  deploy :quick_app
+  deploy :quick_app_worker
+end
+```
+
+To run these deploys, the following task can be run:
+
+```shell
+$ bundle exec rake aerosol:env:staging
+```
+
 Namespace
 ---------
 
