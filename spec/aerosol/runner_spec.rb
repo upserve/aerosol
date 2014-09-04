@@ -243,12 +243,20 @@ describe Aerosol::Runner do
   end
 
   describe '#wait_for_new_instances' do
-    let(:instances) { 3.times.map { double(:instance, :public_hostname => 'not-a-real-hostname') } }
-    let!(:deploy) do
+    let(:instances) do
+      3.times.map do |i|
+        double(:instance,
+               :public_hostname => 'not-a-real-hostname',
+               :instance_state_name => "test#{i}")
+      end
+    end
+    let(:timeout_length) { 0.01 }
+    let(:deploy) do
+      timeout = timeout_length
       Aerosol::Deploy.new! do
         name :wait_for_new_instances_deploy
         live_check '/live_check'
-        instance_live_grace_period 1
+        instance_live_grace_period timeout
         stub(:sleep)
       end
     end
@@ -263,9 +271,11 @@ describe Aerosol::Runner do
     end
 
     context 'when all of the new instances eventually return a 200' do
+      let(:timeout_length) { 1 }
       let(:healthy) { true }
 
       it 'does nothing' do
+        deploy
         expect { action }.to_not raise_error
       end
     end
@@ -274,6 +284,19 @@ describe Aerosol::Runner do
       let(:healthy) { false }
 
       it 'raises an error' do
+        deploy
+        expect { action }.to raise_error
+      end
+    end
+
+    context 'when getting new instances takes too long' do
+      let(:healthy) { true }
+      before do
+        allow(subject).to receive(:new_instances) { sleep 10 }
+      end
+
+      it 'raises an error' do
+        deploy
         expect { action }.to raise_error
       end
     end
