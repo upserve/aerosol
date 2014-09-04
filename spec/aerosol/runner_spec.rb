@@ -251,7 +251,7 @@ describe Aerosol::Runner do
       end
     end
     let(:timeout_length) { 0.01 }
-    let(:deploy) do
+    let!(:deploy) do
       timeout = timeout_length
       Aerosol::Deploy.new! do
         name :wait_for_new_instances_deploy
@@ -275,7 +275,6 @@ describe Aerosol::Runner do
       let(:healthy) { true }
 
       it 'does nothing' do
-        deploy
         expect { action }.to_not raise_error
       end
     end
@@ -284,7 +283,6 @@ describe Aerosol::Runner do
       let(:healthy) { false }
 
       it 'raises an error' do
-        deploy
         expect { action }.to raise_error
       end
     end
@@ -296,7 +294,6 @@ describe Aerosol::Runner do
       end
 
       it 'raises an error' do
-        deploy
         expect { action }.to raise_error
       end
     end
