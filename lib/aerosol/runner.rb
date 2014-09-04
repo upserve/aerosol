@@ -1,6 +1,7 @@
 require 'socket'
 require 'active_record'
 require 'grit'
+require 'timeout'
 
 class Aerosol::Runner
   extend Dockly::Util::Delegate
@@ -58,17 +59,24 @@ class Aerosol::Runner
   def wait_for_new_instances
     require_deploy!
     info "waiting for new instances"
-    start_time = Time.now
-    remaining_instances = new_instances
-    while !remaining_instances.empty? && (Time.now < (start_time + instance_live_grace_period))
-      info "waiting for instances to be live (#{remaining_instances.count} remaining)"
-      remaining_instances.reject! { |instance| healthy?(instance) }
-      sleep(10) unless remaining_instances.empty?
+
+    live_instances = []
+    Timeout.timeout(instance_live_grace_period) do
+      loop do
+        current_instances = new_instances
+        remaining_instances = current_instances - live_instances
+        info "waiting for instances to be live (#{remaining_instances.count} remaining)"
+        debug "current instances: #{current_instances.map(&:instance_state_name)}"
+        debug "live instances: #{live_instances.map(&:instance_state_name)}"
+        live_instances.concat(current_instances.select { |instance| healthy?(instance) })
+        break if (current_instances - live_instances).empty?
+        sleep(10)
+      end
     end
-    unless remaining_instances.empty?
-      raise "[aerosol runner] site live check timed out after #{instance_live_grace_period} seconds"
-    end
+
     info "new instances are up"
+  rescue Timeout::Error
+    raise "[aerosol runner] site live check timed out after #{instance_live_grace_period} seconds"
   end
 
   def healthy?(instance)
@@ -157,7 +165,6 @@ class Aerosol::Runner
     start_time = Time.now
     while launch_configuration.all_instances.length < auto_scaling.min_size
       info "Waiting for instances to come up"
-      raise if Time.now > (start_time + instance_live_grace_period)
       sleep 10
     end
     launch_configuration.all_instances
