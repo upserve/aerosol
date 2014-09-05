@@ -82,7 +82,7 @@ class Aerosol::Runner
   def healthy?(instance)
     unless instance.live?
       debug "#{instance.id} is not live"
-      return false 
+      return false
     end
 
     ssh.host(instance)
