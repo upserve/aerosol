@@ -247,7 +247,7 @@ describe Aerosol::Runner do
       3.times.map do |i|
         double(:instance,
                :public_hostname => 'not-a-real-hostname',
-               :instance_state_name => "test#{i}")
+               :id => "test#{i}")
       end
     end
     let(:timeout_length) { 0.01 }
