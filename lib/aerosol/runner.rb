@@ -80,7 +80,10 @@ class Aerosol::Runner
   end
 
   def healthy?(instance)
-    return false unless instance.live?
+    unless instance.live?
+      debug "#{instance.id} is not live"
+      return false 
+    end
 
     ssh.host(instance)
     success = false
@@ -98,8 +101,15 @@ class Aerosol::Runner
       ret = ssh_exec!(session, command)
       success = ret[:exit_status].zero?
     end
+
+    if success
+      debug "#{instance.id} is healthy"
+    else
+      debug "#{instance.id} is not healthy"
+    end
     success
-  rescue
+  rescue => ex
+    debug "#{instance.id} is not healthy: #{ex.message}"
     false
   end
 
