@@ -68,7 +68,7 @@ class Aerosol::Runner
         info "waiting for instances to be live (#{remaining_instances.count} remaining)"
         debug "current instances: #{current_instances.map(&:id)}"
         debug "live instances: #{live_instances.map(&:id)}"
-        live_instances.concat(current_instances.select { |instance| healthy?(instance) })
+        live_instances.concat(remaining_instances.select { |instance| healthy?(instance) })
         break if (current_instances - live_instances).empty?
         sleep(10)
       end
