@@ -168,4 +168,25 @@ describe Aerosol::Deploy do
       end
     end
   end
+
+  describe '#is_alive?' do
+    let(:check) { proc { true } }
+
+    context 'when no argument is given' do
+      before { subject.is_alive?(&check) }
+
+      it 'returns the current value of is_alive?' do
+        expect(subject.is_alive?).to eq(check)
+      end
+    end
+
+    context 'when an argument is given' do
+      it 'sets is_alive? to that value' do
+        expect { subject.is_alive?(&check) }
+          .to change { subject.is_alive? }
+          .from(nil)
+          .to(check)
+      end
+    end
+  end
 end

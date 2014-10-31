@@ -88,18 +88,7 @@ class Aerosol::Runner
     ssh.host(instance)
     success = false
     ssh.with_connection do |session|
-      command = [
-        'wget',
-        '-q',
-        # Since we're hitting localhost, the cert will always be invalid, so don't try to check it.
-        deploy.ssl ? '--no-check-certificate' : nil,
-        "'#{deploy.live_check_url}'",
-        '-O',
-        '/dev/null'
-      ].compact.join(' ')
-
-      ret = ssh_exec!(session, command)
-      success = ret[:exit_status].zero?
+      success = is_alive?.nil? ? check_site_live(session) : is_alive?.call(session, self)
     end
 
     if success
@@ -111,6 +100,21 @@ class Aerosol::Runner
   rescue => ex
     debug "#{instance.id} is not healthy: #{ex.message}"
     false
+  end
+
+  def check_site_live(session)
+    command = [
+      'wget',
+      '-q',
+      # Since we're hitting localhost, the cert will always be invalid, so don't try to check it.
+      deploy.ssl ? '--no-check-certificate' : nil,
+      "'#{deploy.live_check_url}'",
+      '-O',
+      '/dev/null'
+    ].compact.join(' ')
+
+    ret = ssh_exec!(session, command)
+    ret[:exit_status].zero?
   end
 
   def stop_app
@@ -172,7 +176,6 @@ class Aerosol::Runner
 
   def new_instances
     require_deploy!
-    start_time = Time.now
     while launch_configuration.all_instances.length < auto_scaling.min_size
       info "Waiting for instances to come up"
       sleep 10
@@ -200,7 +203,8 @@ class Aerosol::Runner
 
   delegate :ssh, :migration_ssh, :package, :auto_scaling, :stop_command,
            :live_check, :db_config_path, :instance_live_grace_period,
-           :app_port, :continue_if_stop_app_fails, :stop_app_retries, :to => :deploy
+           :app_port, :continue_if_stop_app_fails, :stop_app_retries,
+           :is_alive?, :to => :deploy
   delegate :launch_configuration, :to => :auto_scaling
 
 private
