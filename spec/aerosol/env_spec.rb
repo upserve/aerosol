@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Aerosol::Env, :cur do
+describe Aerosol::Env do
   describe '#deploy' do
     let(:name) { "unique_name_#{Time.now.to_i}".to_sym }
     let!(:deploy) { Aerosol.deploy(name) { } }

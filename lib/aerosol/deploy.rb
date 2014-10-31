@@ -33,6 +33,11 @@ class Aerosol::Deploy
     @live_check
   end
 
+  def is_alive?(&block)
+    @is_alive = block unless block.nil?
+    @is_alive
+  end
+
   def live_check_url
     [ssl ? 'https' : 'http', '://localhost:', app_port, live_check].join
   end
