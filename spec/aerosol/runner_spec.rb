@@ -255,7 +255,7 @@ describe Aerosol::Runner do
       timeout = timeout_length
       Aerosol::Deploy.new! do
         name :wait_for_new_instances_deploy
-        live_check '/live_check'
+        is_alive? { is_site_live }
         instance_live_grace_period timeout
         stub(:sleep)
       end
@@ -273,6 +273,7 @@ describe Aerosol::Runner do
     context 'when all of the new instances eventually return a 200' do
       let(:timeout_length) { 1 }
       let(:healthy) { true }
+      let(:is_site_live) { true }
 
       it 'does nothing' do
         expect { action }.to_not raise_error
@@ -281,6 +282,7 @@ describe Aerosol::Runner do
 
     context 'when at least one of the instances never returns a 200' do
       let(:healthy) { false }
+      let(:is_site_live) { false }
 
       it 'raises an error' do
         expect { action }.to raise_error
@@ -289,6 +291,7 @@ describe Aerosol::Runner do
 
     context 'when getting new instances takes too long' do
       let(:healthy) { true }
+      let(:is_site_live) { false }
       before do
         allow(subject).to receive(:new_instances) { sleep 10 }
       end
