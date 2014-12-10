@@ -224,7 +224,7 @@ private
   end
 
   # inspired by: http://stackoverflow.com/questions/3386233/how-to-get-exit-status-with-rubys-netssh-library
-  def ssh_exec!(ssh, command, options = {})
+  def ssh_exec!(ssh, command, options = {}, &block)
     res = { :out => "", :err => "", :exit_status => nil }
     ssh.open_channel do |channel|
       if options[:tty]
@@ -237,8 +237,14 @@ private
       channel.exec(command) do |ch, success|
         raise "unable to run remote cmd: #{command}" unless success
 
-        channel.on_data { |_, data| res[:out] << data }
-        channel.on_extended_data { |_, type, data| res[:err] << data }
+        channel.on_data do |_, data|
+          block.call(:out, data) unless block.nil?
+          res[:out] << data
+        end
+        channel.on_extended_data do |_, type, data|
+          block.call(:err, data) unless block.nil?
+          res[:err] << data
+        end
         channel.on_request("exit-status") { |_, data| res[:exit_status] = data.read_long }
       end
     end
