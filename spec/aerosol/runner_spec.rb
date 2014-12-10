@@ -302,6 +302,62 @@ describe Aerosol::Runner do
     end
   end
 
+  describe '#start_tailing_logs' do
+    let(:ssh) { double(:ssh) }
+    let(:instance) { double(:instance, id: '2') }
+    let(:command) { 'sudo tail -f /var/log/syslog' }
+    let(:log_files) { ['/var/log/syslog'] }
+
+    before do
+      expect(subject).to receive(:log_files).and_return(log_files)
+    end
+
+    context 'when a log thread is already made' do
+      let(:old_log_thread) { double(:old_log_thread) }
+
+      it 'keeps the old one' do
+        subject.log_threads[instance.id] = old_log_thread
+        expect(subject.start_tailing_logs(ssh, instance)).to be(old_log_thread)
+      end
+    end
+
+    context 'when no log thread exists' do
+      let(:new_log_thread) { double(:new_log_thread) }
+
+      it 'makes a new one' do
+        expect(subject).to receive(:ssh_thread).with(command, ssh, instance) {
+          new_log_thread
+        }
+        expect(subject.start_tailing_logs(ssh, instance)).to be(new_log_thread)
+      end
+    end
+  end
+
+  describe '#ssh_thread' do
+    let(:ssh) { Aerosol::Connection.new(user: `whoami`.strip, host: 'localhost') }
+    let(:instance) { double(:intance, id: '1') }
+    let(:thread) {
+      subject.ssh_thread(command, ssh, instance)
+    }
+    context 'when no error is raised' do
+      let(:command) { 'echo "hello"; echo "bye"' }
+
+      it 'should make a new thread that SSHs and runs a command' do
+        expect(subject).to receive(:info).twice
+        thread.join
+      end
+    end
+
+    context 'when an error is raised' do
+      let(:command) { ['test','ing'] }
+
+      it 'logs the errors' do
+        expect(subject).to receive(:error).twice
+        thread.join
+      end
+    end
+  end
+
   describe '#stop_app' do
     let!(:lc) do
       Aerosol::LaunchConfiguration.new! do

@@ -8,7 +8,11 @@ class Aerosol::Runner
   include Dockly::Util::Logger::Mixin
 
   logger_prefix '[aerosol runner]'
-  attr_reader :deploy
+  attr_reader :deploy, :log_threads
+
+  def initialize
+    @log_threads = {}
+  end
 
   def run_migration
     require_deploy!
@@ -117,6 +121,35 @@ class Aerosol::Runner
     ret[:exit_status].zero?
   end
 
+  def start_tailing_logs(ssh, instance)
+    command = [
+      'sudo', 'tail', '-f', *log_files
+    ].join(' ')
+
+    log_threads[instance.id] ||= ssh_thread(command, ssh, instance)
+  end
+
+  def ssh_thread(command, ssh, instance)
+    Thread.new do
+      debug 'starting tail'
+      begin
+        ssh.with_connection do |session|
+          debug 'tailing session connected'
+          ssh_exec!(session, command) do |stream, data|
+            data.lines.each do |line|
+              info "[#{instance.id}] #{stream}: #{line}"
+            end
+          end
+        end
+      rescue => ex
+        error "#{ex.class}: #{ex.message}"
+        error "#{ex.backtrace.join("\n")}"
+      ensure
+        debug 'finished'
+      end
+    end
+  end
+
   def stop_app
     info "stopping old app"
     to_stop = old_instances
@@ -204,7 +237,7 @@ class Aerosol::Runner
   delegate :ssh, :migration_ssh, :package, :auto_scaling, :stop_command,
            :live_check, :db_config_path, :instance_live_grace_period,
            :app_port, :continue_if_stop_app_fails, :stop_app_retries,
-           :is_alive?, :to => :deploy
+           :is_alive?, :log_files, :to => :deploy
   delegate :launch_configuration, :to => :auto_scaling
 
 private
