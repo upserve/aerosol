@@ -81,6 +81,13 @@ class Aerosol::Runner
     info "new instances are up"
   rescue Timeout::Error
     raise "[aerosol runner] site live check timed out after #{instance_live_grace_period} seconds"
+  ensure
+    log_threads.each do |instance_id, thread|
+      if thread.alive?
+        debug "Killing tailing for #{instance_id}"
+        thread.kill
+      end
+    end
   end
 
   def healthy?(instance)
@@ -92,6 +99,7 @@ class Aerosol::Runner
     ssh.host(instance)
     success = false
     ssh.with_connection do |session|
+      start_tailing_logs(ssh, instance)
       success = is_alive?.nil? ? check_site_live(session) : is_alive?.call(session, self)
     end
 
