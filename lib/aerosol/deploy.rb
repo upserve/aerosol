@@ -7,7 +7,7 @@ class Aerosol::Deploy
                 :instance_live_grace_period, :app_port,
                 :continue_if_stop_app_fails, :stop_app_retries,
                 :sleep_before_termination, :post_deploy_command,
-                :ssl
+                :ssl, :log_files
 
   dsl_class_attribute :ssh, Aerosol::Connection
   dsl_class_attribute :migration_ssh, Aerosol::Connection
@@ -20,6 +20,7 @@ class Aerosol::Deploy
   default_value :stop_app_retries, 2
   default_value :sleep_before_termination, 20
   default_value :ssl, false
+  default_value :log_files, ['/var/log/syslog']
 
   def live_check(arg = nil)
     case
