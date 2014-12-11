@@ -333,7 +333,7 @@ describe Aerosol::Runner do
     end
   end
 
-  describe '#ssh_fork' do
+  describe '#ssh_fork', :local do
     let(:ssh) { Aerosol::Connection.new(user: `whoami`.strip, host: 'localhost') }
     let(:instance) { double(:intance, id: '1') }
     let(:ssh_fork) {
