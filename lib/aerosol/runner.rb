@@ -8,10 +8,10 @@ class Aerosol::Runner
   include Dockly::Util::Logger::Mixin
 
   logger_prefix '[aerosol runner]'
-  attr_reader :deploy, :log_threads
+  attr_reader :deploy, :log_forks
 
   def initialize
-    @log_threads = {}
+    @log_forks = {}
   end
 
   def run_migration
@@ -78,15 +78,17 @@ class Aerosol::Runner
       end
     end
 
-    info "new instances are up"
+    info 'new instances are up'
   rescue Timeout::Error
     raise "[aerosol runner] site live check timed out after #{instance_live_grace_period} seconds"
   ensure
-    log_threads.each do |instance_id, thread|
-      if thread.alive?
-        debug "Killing tailing for #{instance_id}"
-        thread.kill
-      end
+    log_forks.each do |instance_id, fork|
+      debug "Killing tailing for #{instance_id}: #{Time.now}"
+      Process.kill('HUP', fork)
+      debug "Killed process for #{instance_id}: #{Time.now}"
+      debug "Waiting for process to die"
+      Process.wait(fork)
+      debug "Process ended for #{instance_id}: #{Time.now}"
     end
   end
 
@@ -134,11 +136,15 @@ class Aerosol::Runner
       'sudo', 'tail', '-f', *log_files
     ].join(' ')
 
-    log_threads[instance.id] ||= ssh_thread(command, ssh, instance)
+    log_forks[instance.id] ||= ssh_fork(command, ssh, instance)
   end
 
-  def ssh_thread(command, ssh, instance)
-    Thread.new do
+  def ssh_fork(command, ssh, instance)
+    fork do
+      Signal.trap('HUP') do
+        debug 'Killing tailing session'
+        Process.exit!
+      end
       debug 'starting tail'
       begin
         ssh.with_connection do |session|
