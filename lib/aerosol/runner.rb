@@ -8,10 +8,10 @@ class Aerosol::Runner
   include Dockly::Util::Logger::Mixin
 
   logger_prefix '[aerosol runner]'
-  attr_reader :deploy, :log_forks
+  attr_reader :deploy, :log_pids
 
   def initialize
-    @log_forks = {}
+    @log_pids = {}
   end
 
   def run_migration
@@ -82,7 +82,7 @@ class Aerosol::Runner
   rescue Timeout::Error
     raise "[aerosol runner] site live check timed out after #{instance_live_grace_period} seconds"
   ensure
-    log_forks.each do |instance_id, fork|
+    log_pids.each do |instance_id, fork|
       debug "Killing tailing for #{instance_id}: #{Time.now}"
       Process.kill('HUP', fork)
       debug "Killed process for #{instance_id}: #{Time.now}"
@@ -136,7 +136,7 @@ class Aerosol::Runner
       'sudo', 'tail', '-f', *log_files
     ].join(' ')
 
-    log_forks[instance.id] ||= ssh_fork(command, ssh, instance)
+    log_pids[instance.id] ||= ssh_fork(command, ssh, instance)
   end
 
   def ssh_fork(command, ssh, instance)
