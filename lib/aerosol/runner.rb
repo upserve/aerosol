@@ -8,7 +8,11 @@ class Aerosol::Runner
   include Dockly::Util::Logger::Mixin
 
   logger_prefix '[aerosol runner]'
-  attr_reader :deploy
+  attr_reader :deploy, :log_pids
+
+  def initialize
+    @log_pids = {}
+  end
 
   def run_migration
     require_deploy!
@@ -74,9 +78,18 @@ class Aerosol::Runner
       end
     end
 
-    info "new instances are up"
+    info 'new instances are up'
   rescue Timeout::Error
     raise "[aerosol runner] site live check timed out after #{instance_live_grace_period} seconds"
+  ensure
+    log_pids.each do |instance_id, fork|
+      debug "Killing tailing for #{instance_id}: #{Time.now}"
+      Process.kill('HUP', fork)
+      debug "Killed process for #{instance_id}: #{Time.now}"
+      debug "Waiting for process to die"
+      Process.wait(fork)
+      debug "Process ended for #{instance_id}: #{Time.now}"
+    end
   end
 
   def healthy?(instance)
@@ -88,6 +101,7 @@ class Aerosol::Runner
     ssh.host(instance)
     success = false
     ssh.with_connection do |session|
+      start_tailing_logs(ssh, instance)
       success = is_alive?.nil? ? check_site_live(session) : is_alive?.call(session, self)
     end
 
@@ -115,6 +129,39 @@ class Aerosol::Runner
 
     ret = ssh_exec!(session, command)
     ret[:exit_status].zero?
+  end
+
+  def start_tailing_logs(ssh, instance)
+    command = [
+      'sudo', 'tail', '-f', *log_files
+    ].join(' ')
+
+    log_pids[instance.id] ||= ssh_fork(command, ssh, instance)
+  end
+
+  def ssh_fork(command, ssh, instance)
+    fork do
+      Signal.trap('HUP') do
+        debug 'Killing tailing session'
+        Process.exit!
+      end
+      debug 'starting tail'
+      begin
+        ssh.with_connection do |session|
+          debug 'tailing session connected'
+          ssh_exec!(session, command) do |stream, data|
+            data.lines.each do |line|
+              info "[#{instance.id}] #{stream}: #{line}"
+            end
+          end
+        end
+      rescue => ex
+        error "#{ex.class}: #{ex.message}"
+        error "#{ex.backtrace.join("\n")}"
+      ensure
+        debug 'finished'
+      end
+    end
   end
 
   def stop_app
@@ -204,7 +251,7 @@ class Aerosol::Runner
   delegate :ssh, :migration_ssh, :package, :auto_scaling, :stop_command,
            :live_check, :db_config_path, :instance_live_grace_period,
            :app_port, :continue_if_stop_app_fails, :stop_app_retries,
-           :is_alive?, :to => :deploy
+           :is_alive?, :log_files, :to => :deploy
   delegate :launch_configuration, :to => :auto_scaling
 
 private
@@ -224,7 +271,7 @@ private
   end
 
   # inspired by: http://stackoverflow.com/questions/3386233/how-to-get-exit-status-with-rubys-netssh-library
-  def ssh_exec!(ssh, command, options = {})
+  def ssh_exec!(ssh, command, options = {}, &block)
     res = { :out => "", :err => "", :exit_status => nil }
     ssh.open_channel do |channel|
       if options[:tty]
@@ -237,8 +284,14 @@ private
       channel.exec(command) do |ch, success|
         raise "unable to run remote cmd: #{command}" unless success
 
-        channel.on_data { |_, data| res[:out] << data }
-        channel.on_extended_data { |_, type, data| res[:err] << data }
+        channel.on_data do |_, data|
+          block.call(:out, data) unless block.nil?
+          res[:out] << data
+        end
+        channel.on_extended_data do |_, type, data|
+          block.call(:err, data) unless block.nil?
+          res[:err] << data
+        end
         channel.on_request("exit-status") { |_, data| res[:exit_status] = data.read_long }
       end
     end
