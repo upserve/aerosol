@@ -302,6 +302,68 @@ describe Aerosol::Runner do
     end
   end
 
+  describe '#start_tailing_logs' do
+    let(:ssh) { double(:ssh) }
+    let(:instance) { double(:instance, id: '2') }
+    let(:command) { 'sudo tail -f /var/log/syslog' }
+    let(:log_files) { ['/var/log/syslog'] }
+
+    before do
+      expect(subject).to receive(:log_files).and_return(log_files)
+    end
+
+    context 'when a log fork is already made' do
+      let(:old_log_fork) { double(:old_log_fork) }
+
+      it 'keeps the old one' do
+        subject.log_pids[instance.id] = old_log_fork
+        expect(subject.start_tailing_logs(ssh, instance)).to be(old_log_fork)
+      end
+    end
+
+    context 'when no log fork exists' do
+      let(:new_log_fork) { double(:new_log_fork) }
+
+      it 'makes a new one' do
+        expect(subject).to receive(:ssh_fork).with(command, ssh, instance) {
+          new_log_fork
+        }
+        expect(subject.start_tailing_logs(ssh, instance)).to be(new_log_fork)
+      end
+    end
+  end
+
+  describe '#ssh_fork', :local do
+    let(:ssh) { Aerosol::Connection.new(user: `whoami`.strip, host: 'localhost') }
+    let(:instance) { double(:intance, id: '1') }
+    let(:ssh_fork) {
+      subject.ssh_fork(command, ssh, instance)
+    }
+    context 'when no error is raised' do
+      let(:command) { 'echo "hello"; echo "bye"' }
+
+      it 'should make a new fork that SSHs and runs a command' do
+        expect(subject).to receive(:fork).and_yield do |&block|
+          expect(subject).to receive(:info).twice
+          block.call
+        end
+        ssh_fork
+      end
+    end
+
+    context 'when an error is raised' do
+      let(:command) { ['test','ing'] }
+
+      it 'logs the errors' do
+        expect(subject).to receive(:fork).and_yield do |&block|
+          expect(subject).to receive(:error).twice
+          block.call
+        end
+        ssh_fork
+      end
+    end
+  end
+
   describe '#stop_app' do
     let!(:lc) do
       Aerosol::LaunchConfiguration.new! do
