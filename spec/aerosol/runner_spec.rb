@@ -316,7 +316,7 @@ describe Aerosol::Runner do
       let(:old_log_fork) { double(:old_log_fork) }
 
       it 'keeps the old one' do
-        subject.log_forks[instance.id] = old_log_fork
+        subject.log_pids[instance.id] = old_log_fork
         expect(subject.start_tailing_logs(ssh, instance)).to be(old_log_fork)
       end
     end
