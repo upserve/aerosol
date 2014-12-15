@@ -18,7 +18,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'activerecord', '>= 3.2.0'
   gem.add_dependency 'clamp', '~> 0.6'
   gem.add_dependency 'excon'
-  gem.add_dependency 'fog', '~> 1.25.0'
+  gem.add_dependency 'fog', '~> 1.21'
   gem.add_dependency 'grit'
   gem.add_dependency 'net-ssh'
   gem.add_dependency 'net-ssh-gateway'
