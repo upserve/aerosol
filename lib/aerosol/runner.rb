@@ -74,6 +74,7 @@ class Aerosol::Runner
         debug "live instances: #{live_instances.map(&:id)}"
         live_instances.concat(remaining_instances.select { |instance| healthy?(instance) })
         break if (current_instances - live_instances).empty?
+        debug 'sleeping for 10 seconds'
         sleep(10)
       end
     end
@@ -93,16 +94,26 @@ class Aerosol::Runner
   end
 
   def healthy?(instance)
+    debug "Checking if #{instance.id} is healthy"
+
     unless instance.live?
       debug "#{instance.id} is not live"
       return false
     end
 
+    debug "trying to SSH to #{instance.id}"
     ssh.host(instance)
     success = false
     ssh.with_connection do |session|
-      start_tailing_logs(ssh, instance)
-      success = is_alive?.nil? ? check_site_live(session) : is_alive?.call(session, self)
+      start_tailing_logs(ssh, instance) if log_pids[instance.id].nil?
+      debug "checking if #{instance.id} is healthy"
+      success = if is_alive?.nil?
+        debug 'Using default site live check'
+        check_site_live(session)
+      else
+        debug 'Using custom site live check'
+        is_alive?.call(session, self)
+      end
     end
 
     if success
@@ -127,7 +138,9 @@ class Aerosol::Runner
       '/dev/null'
     ].compact.join(' ')
 
+    debug "running #{command}"
     ret = ssh_exec!(session, command)
+    debug "finished running #{command}"
     ret[:exit_status].zero?
   end
 
@@ -140,6 +153,7 @@ class Aerosol::Runner
   end
 
   def ssh_fork(command, ssh, instance)
+    debug 'starting ssh fork'
     fork do
       Signal.trap('HUP') do
         debug 'Killing tailing session'
@@ -151,7 +165,7 @@ class Aerosol::Runner
           debug 'tailing session connected'
           ssh_exec!(session, command) do |stream, data|
             data.lines.each do |line|
-              info "[#{instance.id}] #{stream}: #{line}"
+              debug "[#{instance.id}] #{stream}: #{line}"
             end
           end
         end
