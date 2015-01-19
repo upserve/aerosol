@@ -163,9 +163,15 @@ class Aerosol::Runner
       begin
         ssh.with_connection do |session|
           debug 'tailing session connected'
+          buffer = ''
           ssh_exec!(session, command) do |stream, data|
             data.lines.each do |line|
-              debug "[#{instance.id}] #{stream}: #{line}"
+              if line.end_with?($/)
+                debug "[#{instance.id}] #{stream}: #{buffer + line}"
+                buffer = ''
+              else
+                buffer = line
+              end
             end
           end
         end
