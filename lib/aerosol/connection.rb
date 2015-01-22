@@ -15,7 +15,11 @@ class Aerosol::Connection
 
     if jump
       info "connecting to gateway #{jump[:user] || user}@#{jump[:host]}"
-      gateway = Net::SSH::Gateway.new(jump[:host], jump[:user] || user, :forward_agent => true)
+      gateway = nil
+      Timeout.timeout(20) do
+        gateway = Net::SSH::Gateway.new(jump[:host], jump[:user] || user, :forward_agent => true)
+      end
+
       begin
         info "connecting to #{user}@#{actual_host} through gateway"
         gateway.ssh(actual_host, user, &block)
@@ -27,5 +31,8 @@ class Aerosol::Connection
       info "connecting to #{user}@#{actual_host}"
       Net::SSH.start(actual_host, user, &block)
     end
+  rescue Timeout::Error => ex
+    error "Timeout error #{ex.message}"
+    error ex.backtrace.join("\n")
   end
 end
