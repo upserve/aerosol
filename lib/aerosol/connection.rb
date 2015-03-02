@@ -8,10 +8,11 @@ class Aerosol::Connection
   logger_prefix '[aerosol connection]'
   dsl_attribute :user, :host, :jump
 
-  def with_connection(&block)
-    ensure_present! :user, :host
-
-    actual_host = host.is_a?(String) ? host : (host.public_hostname || host.private_ip_address)
+  def with_connection(overridden_host=nil, &block)
+    actual_host = overridden_host || host
+    unless actual_host.is_a?(String)
+      actual_host = (actual_host.public_hostname || actual_host.private_ip_address)
+    end
 
     if jump
       info "connecting to gateway #{jump[:user] || user}@#{jump[:host]}"
