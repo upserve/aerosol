@@ -102,9 +102,8 @@ class Aerosol::Runner
     end
 
     debug "trying to SSH to #{instance.id}"
-    ssh.host(instance)
     success = false
-    ssh.with_connection do |session|
+    ssh.with_connection(instance) do |session|
       start_tailing_logs(ssh, instance) if log_pids[instance.id].nil?
       debug "checking if #{instance.id} is healthy"
       success = if is_alive?.nil?
@@ -161,7 +160,7 @@ class Aerosol::Runner
       end
       debug 'starting tail'
       begin
-        ssh.with_connection do |session|
+        ssh.with_connection(instance) do |session|
           debug 'tailing session connected'
           buffer = ''
           ssh_exec!(session, command) do |stream, data|
@@ -278,8 +277,7 @@ private
 
   def stop_one_app(instance)
     debug "attempting to stop app on: #{instance.public_hostname}"
-    ssh.host(instance)
-    ssh.with_connection do |session|
+    ssh.with_connection(instance) do |session|
       session.exec!(stop_command)
       session.loop
     end
