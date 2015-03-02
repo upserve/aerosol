@@ -334,8 +334,8 @@ describe Aerosol::Runner do
   end
 
   describe '#ssh_fork', :local do
-    let(:ssh) { Aerosol::Connection.new(user: `whoami`.strip, host: 'localhost') }
-    let(:instance) { double(:intance, id: '1') }
+    let(:ssh) { Aerosol::Connection.new(user: `whoami`.strip, host: 'www.doesntusethis.com') }
+    let(:instance) { double(:instance, id: '1', public_hostname: 'localhost') }
     let(:ssh_fork) {
       subject.ssh_fork(command, ssh, instance)
     }
@@ -344,7 +344,7 @@ describe Aerosol::Runner do
 
       it 'should make a new fork that SSHs and runs a command' do
         expect(subject).to receive(:fork).and_yield do |&block|
-          expect(subject).to receive(:info).twice
+          expect(subject).to receive(:debug).exactly(5).times
           block.call
         end
         ssh_fork
