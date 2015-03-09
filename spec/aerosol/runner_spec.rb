@@ -306,29 +306,49 @@ describe Aerosol::Runner do
     let(:ssh) { double(:ssh) }
     let(:instance) { double(:instance, id: '2') }
     let(:command) { 'sudo tail -f /var/log/syslog' }
+    let(:tail_logs) { true }
     let(:log_files) { ['/var/log/syslog'] }
 
     before do
-      expect(subject).to receive(:log_files).and_return(log_files)
+      allow(subject).to receive(:tail_logs).and_return(tail_logs)
+      allow(subject).to receive(:log_files).and_return(log_files)
     end
 
-    context 'when a log fork is already made' do
-      let(:old_log_fork) { double(:old_log_fork) }
+    context 'when there are log_files' do
+      context 'when a log fork is already made' do
+        let(:old_log_fork) { double(:old_log_fork) }
 
-      it 'keeps the old one' do
-        subject.log_pids[instance.id] = old_log_fork
-        expect(subject.start_tailing_logs(ssh, instance)).to be(old_log_fork)
+        it 'keeps the old one' do
+          subject.log_pids[instance.id] = old_log_fork
+          expect(subject.start_tailing_logs(ssh, instance)).to be(old_log_fork)
+        end
+      end
+
+      context 'when no log fork exists' do
+        let(:new_log_fork) { double(:new_log_fork) }
+
+        it 'makes a new one' do
+          expect(subject).to receive(:ssh_fork).with(command, ssh, instance) {
+            new_log_fork
+          }
+          expect(subject.start_tailing_logs(ssh, instance)).to be(new_log_fork)
+        end
       end
     end
 
-    context 'when no log fork exists' do
-      let(:new_log_fork) { double(:new_log_fork) }
+    context 'when there is no log_files' do
+      let(:log_files) { [] }
 
-      it 'makes a new one' do
-        expect(subject).to receive(:ssh_fork).with(command, ssh, instance) {
-          new_log_fork
-        }
-        expect(subject.start_tailing_logs(ssh, instance)).to be(new_log_fork)
+      it 'does not call ssh_fork' do
+        expect(subject).to_not receive(:ssh_fork)
+      end
+    end
+
+    context 'when tail_logs is false' do
+      let(:tail_logs) { false }
+
+      it 'does not call ssh_fork' do
+        expect(subject).to_not receive(:ssh_fork)
       end
     end
   end

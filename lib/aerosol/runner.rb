@@ -144,11 +144,13 @@ class Aerosol::Runner
   end
 
   def start_tailing_logs(ssh, instance)
-    command = [
-      'sudo', 'tail', '-f', *log_files
-    ].join(' ')
+    if tail_logs && log_files.length > 0
+      command = [
+        'sudo', 'tail', '-f', *log_files
+      ].join(' ')
 
-    log_pids[instance.id] ||= ssh_fork(command, ssh, instance)
+      log_pids[instance.id] ||= ssh_fork(command, ssh, instance)
+    end
   end
 
   def ssh_fork(command, ssh, instance)
@@ -270,7 +272,7 @@ class Aerosol::Runner
   delegate :ssh, :migration_ssh, :package, :auto_scaling, :stop_command,
            :live_check, :db_config_path, :instance_live_grace_period,
            :app_port, :continue_if_stop_app_fails, :stop_app_retries,
-           :is_alive?, :log_files, :to => :deploy
+           :is_alive?, :log_files, :tail_logs, :to => :deploy
   delegate :launch_configuration, :to => :auto_scaling
 
 private
