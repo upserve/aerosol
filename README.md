@@ -337,6 +337,8 @@ Options:
 - post_deploy_command - Command run after the deploy has finished
 - sleep_before_termination - Time to wait after the new instance spawns and before terminating the old instance (allow time for external load balancers to start working)
 - ssl - Boolean that enables/disables ssl when doing the live check (default: 'false').
+- log_files - Paths to files on each instance to tail during deploy (default: '/var/log/syslog')
+- tail_logs - Boolean that will enable/disable tailing log files (default: 'false')
 
 A lot of the options for deployment are required, but we've defined some sane defaults.
 
