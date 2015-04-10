@@ -1,6 +1,8 @@
 class Aerosol::Instance
   include Aerosol::AWSModel
+  include Dockly::Util::Logger::Mixin
 
+  logger_prefix '[aerosol instance]'
   aws_attribute :availability_zone => 'AvailabilityZone',
                 :health_status     => 'HealthStatus',
                 :id                => 'InstanceId',
@@ -44,8 +46,17 @@ class Aerosol::Instance
 private
   def describe!
     ensure_present! :id
+    attempts ||= 0
     result = Aerosol::AWS.compute.describe_instances('instance-id' => id).body
     result['reservationSet'].first['instancesSet'].first rescue nil
+  rescue Fog::Compute::AWS::NotFound => ex
+    if attempts < 3
+      attempts += 1
+      logger.error "#{ex.class}: #{ex.message} - retrying"
+      retry
+    else
+      raise
+    end
   end
 
   def describe_again
