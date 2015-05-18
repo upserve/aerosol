@@ -224,7 +224,6 @@ private
         'iamInstanceProfile'  => launch_configuration.iam_role,
         'networkInterfaces'   => [],
         'ownerId'             => nil,
-        'privateIpAddress'    => nil,
         'reservationId'       => Fog::AWS::Mock.reservation_id,
         'stateReason'         => {},
         'ipAddress'           => Fog::AWS::Mock.ip_address,
