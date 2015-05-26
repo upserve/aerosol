@@ -62,7 +62,7 @@ class Aerosol::LaunchConfiguration
       new_lcs = request_all_for_token(next_token)
       lcs.concat(new_lcs.launch_configurations)
       next_token = new_lcs.next_token
-    end while !next_token.nil?
+    end unless next_token.nil?
 
     lcs
   end
@@ -85,7 +85,7 @@ class Aerosol::LaunchConfiguration
 private
   def create_options
     { # TODO Add dsl so that 'BlockDeviceMappings' may be specified
-      iam_instance_profile: iam_role,
+      iam_instance_profile: iam_instance_profile,
       kernel_id: kernel_id,
       key_name: key_name,
       security_groups: security_groups,

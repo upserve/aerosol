@@ -49,5 +49,5 @@ module Aerosol::AWS
   service :s3, Aws::S3::Client
   service :compute, Aws::EC2::Client
   service :auto_scaling, Aws::AutoScaling::Client
-  env_attr :aws_access_key_id, :aws_secret_access_key
+  env_attr :credentials, :stub_responses
 end
