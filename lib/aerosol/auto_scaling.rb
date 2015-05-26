@@ -3,21 +3,11 @@ class Aerosol::AutoScaling
   include Dockly::Util::Logger::Mixin
 
   logger_prefix '[aerosol auto_scaling]'
-  aws_attribute :aws_identifier            => 'AutoScalingGroupName',
-                :availability_zones        => 'AvailabilityZones',
-                :min_size                  => 'MinSize',
-                :max_size                  => 'MaxSize',
-                :default_cooldown          => 'DefaultCooldown',
-                :desired_capacity          => 'DesiredCapacity',
-                :health_check_grace_period => 'HealthCheckGracePeriod',
-                :health_check_type         => 'HealthCheckType',
-                :load_balancer_names       => 'LoadBalancerNames',
-                :placement_group           => 'PlacementGroup',
-                :tag_from_array            => 'Tags',
-                :created_time              => 'CreatedTime',
-                :vpc_zone_identifier       => 'VPCZoneIdentifier'
+  aws_attribute :auto_scaling_group_name, :availability_zones, :min_size, :max_size, :default_cooldown,
+                :desired_capacity, :health_check_grace_period, :health_check_type, :load_balancer_names,
+                :placement_group, :tag_from_array, :created_time, :vpc_zone_identifier
   aws_class_attribute :launch_configuration, Aerosol::LaunchConfiguration
-  primary_key :aws_identifier
+  primary_key :auto_scaling_group_name
 
   def initialize(options={}, &block)
     tag = options.delete(:tag)
@@ -29,21 +19,21 @@ class Aerosol::AutoScaling
     tags["Deploy"] ||= namespaced_name
   end
 
-  def aws_identifier(arg = nil)
+  def auto_scaling_group_name(arg = nil)
     if arg
-      raise "You cannot set the aws_identifer directly" unless from_aws
-      @aws_identifier = arg
+      raise "You cannot set the auto_scaling_group_name directly" unless from_aws
+      @auto_scaling_group_name = arg
     else
-      @aws_identifier || default_identifier
+      @auto_scaling_group_name || default_identifier
     end
   end
 
   def exists?
     info "auto_scaling: needed?: #{namespaced_name}: " +
-         "checking for auto scaling group: #{aws_identifier}"
+         "checking for auto scaling group: #{auto_scaling_group_name}"
     exists = super
     info "auto scaling: needed?: #{namespaced_name}: " +
-         "#{exists ? 'found' : 'did not find'} auto scaling group: #{aws_identifier}"
+         "#{exists ? 'found' : 'did not find'} auto scaling group: #{auto_scaling_group_name}"
     exists
   end
 
@@ -55,46 +45,42 @@ class Aerosol::AutoScaling
     launch_configuration.create
     info self.inspect
 
-    conn.create_auto_scaling_group(aws_identifier, availability_zones,
-                                  launch_configuration.aws_identifier,
-                                  max_size, min_size,
-                                  create_options)
+    conn.create_auto_scaling_group(
+      auto_scaling_group_name: auto_scaling_group_name,
+      availability_zones: availability_zones,
+      launch_configuration_name: launch_configuration.launch_configuration_name,
+      max_size: max_size,
+      min_size: min_size,
+      **create_options
+    )
     make_fake_instances
     sleep 10 # TODO: switch to fog models and .wait_for { ready? }
   end
 
   def destroy!
     info self.inspect
-    conn.delete_auto_scaling_group(aws_identifier, 'ForceDelete' => true)
+    conn.delete_auto_scaling_group(auto_scaling_group_name: auto_scaling_group_name, force_delete: true)
     begin
       (0..2).each { break if deleting?; sleep 1 }
       launch_configuration.destroy
     rescue => ex
-      info "Launch Config: #{launch_configuration} for #{aws_identifier} was not deleted."
+      info "Launch Config: #{launch_configuration} for #{auto_scaling_group_name} was not deleted."
       info ex.message
     end
   end
 
   def deleting?
-    asgs = conn.describe_auto_scaling_groups("AutoScalingGroupNames" => self.aws_identifier)
-        .body
-        .[]('DescribeAutoScalingGroupsResult')
-        .[]('AutoScalingGroups')
+    asgs = conn.describe_auto_scaling_groups(auto_scaling_group_names: auto_scaling_group_name).auto_scaling_groups
 
     return true if asgs.empty?
 
-    asgs.first['Status'].to_s.include?('Delete')
+    asgs.first.status.to_s.include?('Delete')
   end
 
   def all_instances
-    Aerosol::AWS.auto_scaling
-                .describe_auto_scaling_groups('AutoScalingGroupNames' => self.aws_identifier)
-                .body
-                .[]('DescribeAutoScalingGroupsResult')
-                .[]('AutoScalingGroups')
-                .first
-                .[]('Instances')
-                .map { |instance| Aerosol::Instance.from_hash(instance) }
+    conn.describe_auto_scaling_groups(auto_scaling_group_names: auto_scaling_group_name)
+        .auto_scaling_groups.first
+        .instances.map { |instance| Aerosol::Instance.from_hash(instance) }
   end
 
   def tag(val)
@@ -106,11 +92,8 @@ class Aerosol::AutoScaling
   end
 
   def self.request_all_for_token(next_token)
-    options = next_token.nil? ? {} : { 'NexToken' => '' }
-    Aerosol::AWS.auto_scaling
-                .describe_auto_scaling_groups(options)
-                .body
-                .[]('DescribeAutoScalingGroupsResult')
+    options = next_token.nil? ? {} : { next_token: next_token }
+    Aerosol::AWS.auto_scaling.describe_auto_scaling_groups(options)
   end
 
   def self.request_all
@@ -119,8 +102,8 @@ class Aerosol::AutoScaling
 
     begin
       new_asgs = request_all_for_token(next_token)
-      asgs.concat(new_asgs['AutoScalingGroups'])
-      next_token = new_asgs['NextToken']
+      asgs.concat(new_asgs.auto_scaling_groups)
+      next_token = new_asgs.next_token
     end while !next_token.nil?
 
     asgs
@@ -133,7 +116,7 @@ class Aerosol::AutoScaling
 
   def to_s
     %{Aerosol::AutoScaling { \
-"aws_identifier" => "#{aws_identifier}", \
+"auto_scaling_group_name" => "#{auto_scaling_group_name}", \
 "availability_zones" => "#{availability_zones}", \
 "min_size" => "#{min_size}", \
 "max_size" => "#{max_size}", \
@@ -155,14 +138,14 @@ private
 
   def create_options
     {
-      'DefaultCooldown' => default_cooldown,
-      'DesiredCapacity' => desired_capacity,
-      'HealthCheckGracePeriod' => health_check_grace_period,
-      'HealthCheckType' => health_check_type,
-      'LoadBalancerNames' => load_balancer_names,
-      'PlacementGroup' => placement_group,
-      'Tags' => tags,
-      'VPCZoneIdentifier' => vpc_zone_identifier
+      default_cooldown: default_cooldown,
+      desired_capacity: desired_capacity,
+      health_check_grace_period: health_check_grace_period,
+      health_check_type: health_check_type,
+      load_balancer_names: load_balancer_names,
+      placement_group: placement_group,
+      tags: tags,
+      vpc_zone_identifier: vpc_zone_identifier
     }.reject { |k, v| v.nil? }
   end
 
@@ -172,8 +155,8 @@ private
         tag key => value
       end
     else
-      ary.each do |hash|
-        tag hash['Key'] => hash['Value']
+      ary.each do |struct|
+        tag struct.key => struct.value
       end
     end
   end

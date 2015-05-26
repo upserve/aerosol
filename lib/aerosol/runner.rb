@@ -70,8 +70,8 @@ class Aerosol::Runner
         current_instances = new_instances
         remaining_instances = current_instances - live_instances
         info "waiting for instances to be live (#{remaining_instances.count} remaining)"
-        debug "current instances: #{current_instances.map(&:id)}"
-        debug "live instances: #{live_instances.map(&:id)}"
+        debug "current instances: #{current_instances.map(&:instance_id)}"
+        debug "live instances: #{live_instances.map(&:instance_id)}"
         live_instances.concat(remaining_instances.select { |instance| healthy?(instance) })
         break if (current_instances - live_instances).empty?
         debug 'sleeping for 10 seconds'
@@ -94,18 +94,18 @@ class Aerosol::Runner
   end
 
   def healthy?(instance)
-    debug "Checking if #{instance.id} is healthy"
+    debug "Checking if #{instance.instance_id} is healthy"
 
     unless instance.live?
-      debug "#{instance.id} is not live"
+      debug "#{instance.instance_id} is not live"
       return false
     end
 
-    debug "trying to SSH to #{instance.id}"
+    debug "trying to SSH to #{instance.instance_id}"
     success = false
     ssh.with_connection(instance) do |session|
-      start_tailing_logs(ssh, instance) if log_pids[instance.id].nil?
-      debug "checking if #{instance.id} is healthy"
+      start_tailing_logs(ssh, instance) if log_pids[instance.instance_id].nil?
+      debug "checking if #{instance.instance_id} is healthy"
       success = if is_alive?.nil?
         debug 'Using default site live check'
         check_site_live(session)
@@ -116,13 +116,13 @@ class Aerosol::Runner
     end
 
     if success
-      debug "#{instance.id} is healthy"
+      debug "#{instance.instance_id} is healthy"
     else
-      debug "#{instance.id} is not healthy"
+      debug "#{instance.instance_id} is not healthy"
     end
     success
   rescue => ex
-    debug "#{instance.id} is not healthy: #{ex.message}"
+    debug "#{instance.instance_id} is not healthy: #{ex.message}"
     false
   end
 
@@ -149,7 +149,7 @@ class Aerosol::Runner
         'sudo', 'tail', '-f', *log_files
       ].join(' ')
 
-      log_pids[instance.id] ||= ssh_fork(command, ssh, instance)
+      log_pids[instance.instance_id] ||= ssh_fork(command, ssh, instance)
     end
   end
 
@@ -168,7 +168,7 @@ class Aerosol::Runner
           ssh_exec!(session, command) do |stream, data|
             data.lines.each do |line|
               if line.end_with?($/)
-                debug "[#{instance.id}] #{stream}: #{buffer + line}"
+                debug "[#{instance.instance_id}] #{stream}: #{buffer + line}"
                 buffer = ''
               else
                 buffer = line

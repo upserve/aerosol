@@ -42,9 +42,9 @@ module Aerosol::AWSModel
       @primary_key
     end
 
-    def aws_attribute(hash)
-      dsl_attribute(*hash.keys)
-      aws_attributes.merge!(hash)
+    def aws_attribute(*attrs)
+      dsl_attribute(*attrs)
+      aws_attributes.merge(attrs)
     end
 
     def aws_class_attribute(name, klass)
@@ -62,28 +62,28 @@ module Aerosol::AWSModel
 
     def all
       raise 'Please define .request_all to use .all' unless respond_to?(:request_all)
-      request_all.map { |hash| from_hash(hash) }
+      request_all.map { |struct| from_hash(struct.to_hash) }
     end
 
     def from_hash(hash)
       raise 'To use .from_hash, you must specify a primary_key' if primary_key.nil?
       refs = Hash[aws_class_attributes.map do |name, klass|
-        [name, klass.instances.values.find do |inst|
-          inst.send(klass.primary_key) &&
-            (inst.send(klass.primary_key) == hash[klass.aws_attributes[klass.primary_key]])
-        end]
+        value = klass.instances.values.find do |inst|
+          inst.send(klass.primary_key) && inst.send(klass.primary_key) == hash[klass.primary_key]
+        end
+        [name, value]
       end].reject { |k, v| v.nil? }
 
       instance = new!
       instance.from_aws = true
 
-      aws_attributes.each { |k, v| instance.send(k, hash[v]) unless hash[v].nil? }
+      aws_attributes.each { |attr| instance.send(attr, hash[attr]) unless hash[attr].nil? }
       refs.each { |name, inst| instance.send(name, inst.name) }
       instance
     end
 
     def aws_attributes
-      @aws_attributes ||= {}
+      @aws_attributes ||= Set.new
     end
 
     def aws_class_attributes

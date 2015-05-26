@@ -1,12 +1,9 @@
 class Aerosol::Instance
   include Aerosol::AWSModel
 
-  aws_attribute :availability_zone => 'AvailabilityZone',
-                :health_status     => 'HealthStatus',
-                :id                => 'InstanceId',
-                :lifecycle_state   => 'LifecycleState'
+  aws_attribute :availability_zone, :health_status, :instance_id, :lifecycle_state
   aws_class_attribute :launch_configuration, Aerosol::LaunchConfiguration
-  primary_key :id
+  primary_key :instance_id
 
   def live?
     describe_again
@@ -14,19 +11,19 @@ class Aerosol::Instance
   end
 
   def instance_state_name
-    description['instanceState']['name']
+    description[:state][:name]
   end
 
   def public_hostname
-    description['dnsName']
+    description[:public_dns_name]
   end
 
   def private_ip_address
-    description['privateIpAddress']
+    description[:private_ip_address]
   end
 
-  def ami
-    description['imageId']
+  def image_id
+    description[:image_id]
   end
 
   def description
@@ -36,16 +33,14 @@ class Aerosol::Instance
   def self.request_all
     Aerosol::AWS.auto_scaling
                 .describe_auto_scaling_instances
-                .body
-                .[]('DescribeAutoScalingInstancesResult')
-                .[]('AutoScalingInstances')
+                .auto_scaling_instances
   end
 
 private
   def describe!
-    ensure_present! :id
-    result = Aerosol::AWS.compute.describe_instances('instance-id' => id).body
-    result['reservationSet'].first['instancesSet'].first rescue nil
+    ensure_present! :instance_id
+    result = Aerosol::AWS.compute.describe_instances(instance_ids: [instance_id])
+    result.reservations.first.instances.first.to_h rescue nil
   end
 
   def describe_again

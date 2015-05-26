@@ -1,5 +1,7 @@
-require 'fog'
+require 'aws-sdk'
 require 'dockly/util'
+
+Aws.config.update({ region: 'us-east-1' }) if Aws.config[:region].nil?
 
 module Aerosol
   require 'aerosol/aws'
@@ -41,6 +43,14 @@ module Aerosol
     end
   end
 
+  def region(value = nil)
+    if value.nil?
+      Aws.config[:region]
+    else
+      Aws.config.update(region: value)
+    end
+  end
+
   def setup
     {
       :auto_scalings => Aerosol::AutoScaling.instances,
@@ -76,7 +86,7 @@ module Aerosol
   module_function :inst, :load_inst, :setup, :load_file, :load_file=,
                   :auto_scaling,  :launch_configuration,  :deploy,  :ssh, :git_sha,
                   :auto_scalings, :launch_configurations, :deploys, :sshs,
-                  :namespace, :env, :envs
+                  :namespace, :env, :envs, :region
 end
 
 require 'aerosol/runner'
