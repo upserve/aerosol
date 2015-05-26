@@ -7,7 +7,7 @@ class Aerosol::Deploy
                 :instance_live_grace_period, :app_port,
                 :continue_if_stop_app_fails, :stop_app_retries,
                 :sleep_before_termination, :post_deploy_command,
-                :ssl, :log_files, :tail_logs
+                :ssl, :log_files, :tail_logs, :assume_role
 
   dsl_class_attribute :ssh, Aerosol::Connection
   dsl_class_attribute :migration_ssh, Aerosol::Connection
@@ -22,6 +22,7 @@ class Aerosol::Deploy
   default_value :ssl, false
   default_value :tail_logs, false
   default_value :log_files, ['/var/log/syslog']
+  default_value :assume_role, nil
 
   def live_check(arg = nil)
     case
@@ -58,6 +59,19 @@ class Aerosol::Deploy
 
   def local_ssh_ref
     local_ssh || ssh
+  end
+
+  def perform_role_assumption
+    return if assume_role.nil?
+    Aws.config.update(
+      credentials: Aws::AssumeRoleCredentials.new(
+        role_name: assume_role, role_session_name: 'aerosol'
+      )
+    )
+  end
+
+  def sts
+    Aerosol::AWS.sts
   end
 
   def run_post_deploy

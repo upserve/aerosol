@@ -59,8 +59,14 @@ namespace :aerosol do
 
   Aerosol.deploys.values.each do |inst|
     namespace :"#{inst.name}" do
+      desc "Assumes a role if necessary"
+      task :assume_role => 'aerosol:load' do |name|
+        Thread.current[:rake_task] = name
+        inst.perform_role_assumption
+      end
+
       desc "Runs the ActiveRecord migration through the SSH connection given"
-      task :run_migration => 'aerosol:load' do |name|
+      task :run_migration => "aerosol:#{inst.name}:assume_role" do |name|
         Thread.current[:rake_task] = name
         Aerosol::Runner.new.with_deploy(inst.name) do |runner|
           runner.run_migration
@@ -71,7 +77,7 @@ namespace :aerosol do
       task :create_auto_scaling_group => "aerosol:auto_scaling:#{inst.auto_scaling.name}"
 
       desc "Waits for instances of the new autoscaling groups to start up"
-      task :wait_for_new_instances => 'aerosol:load' do |name|
+      task :wait_for_new_instances => "aerosol:#{inst.name}:assume_role" do |name|
         Thread.current[:rake_task] = name
         Aerosol::Runner.new.with_deploy(inst.name) do |runner|
           runner.wait_for_new_instances
@@ -79,7 +85,7 @@ namespace :aerosol do
       end
 
       desc "Runs command to shut down the application on the old instances instead of just terminating"
-      task :stop_old_app => 'aerosol:load' do |name|
+      task :stop_old_app => "aerosol:#{inst.name}:assume_role" do |name|
         Thread.current[:rake_task] = name
         Aerosol::Runner.new.with_deploy(inst.name) do |runner|
           runner.stop_app
@@ -87,7 +93,7 @@ namespace :aerosol do
       end
 
       desc "Terminates instances with the current tag and different git hash"
-      task :destroy_old_auto_scaling_groups => 'aerosol:load' do |name|
+      task :destroy_old_auto_scaling_groups => "aerosol:#{inst.name}:assume_role" do |name|
         Thread.current[:rake_task] = name
         Aerosol::Runner.new.with_deploy(inst.name) do |runner|
           runner.destroy_old_auto_scaling_groups
@@ -95,7 +101,7 @@ namespace :aerosol do
       end
 
       desc "Terminates instances with the current tag and current git hash"
-      task :destroy_new_auto_scaling_groups => 'aerosol:load' do |name|
+      task :destroy_new_auto_scaling_groups => "aerosol:#{inst.name}:assume_role" do |name|
         Thread.current[:rake_task] = name
         Aerosol::Runner.new.with_deploy(inst.name) do |runner|
           runner.destroy_new_auto_scaling_groups
@@ -103,7 +109,7 @@ namespace :aerosol do
       end
 
       desc "Runs a post deploy command"
-      task :run_post_deploy => 'aerosol:load' do |name|
+      task :run_post_deploy => "aerosol:#{inst.name}:assume_role" do |name|
         Thread.current[:rake_task] = name
         inst.run_post_deploy
       end

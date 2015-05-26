@@ -45,6 +45,7 @@ module Aerosol::AWS
     services.each { |service| instance_variable_set(:"@#{service}", nil) }
   end
 
+  service :sts, Aws::STS::Client
   service :s3, Aws::S3::Client
   service :compute, Aws::EC2::Client
   service :auto_scaling, Aws::AutoScaling::Client
