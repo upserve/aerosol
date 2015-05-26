@@ -69,7 +69,7 @@ module Aerosol::AWSModel
       raise 'To use .from_hash, you must specify a primary_key' if primary_key.nil?
       refs = Hash[aws_class_attributes.map do |name, klass|
         value = klass.instances.values.find do |inst|
-          inst.send(klass.primary_key) && inst.send(klass.primary_key) == hash[klass.primary_key]
+          inst.send(klass.primary_key).to_s == hash[klass.primary_key].to_s unless inst.send(klass.primary_key).nil?
         end
         [name, value]
       end].reject { |k, v| v.nil? }
