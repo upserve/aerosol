@@ -50,8 +50,7 @@ class Aerosol::LaunchConfiguration
 
   def self.request_all_for_token(next_token)
     options = next_token.nil? ? {} : { next_token: next_token }
-    Aerosol::AWS.auto_scaling
-                .describe_launch_configurations(options)
+    Aerosol::AWS.auto_scaling.describe_launch_configurations(options)
   end
 
   def self.request_all
@@ -62,7 +61,7 @@ class Aerosol::LaunchConfiguration
       new_lcs = request_all_for_token(next_token)
       lcs.concat(new_lcs.launch_configurations)
       next_token = new_lcs.next_token
-    end unless next_token.nil?
+    end until next_token.nil?
 
     lcs
   end
