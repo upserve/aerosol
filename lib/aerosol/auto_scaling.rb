@@ -45,15 +45,14 @@ class Aerosol::AutoScaling
     launch_configuration.create
     info self.inspect
 
-    conn.create_auto_scaling_group(
+    conn.create_auto_scaling_group({
       auto_scaling_group_name: auto_scaling_group_name,
       availability_zones: [*availability_zones],
       launch_configuration_name: launch_configuration.launch_configuration_name,
       max_size: max_size,
-      min_size: min_size,
-      **create_options
-    )
-    sleep 10 # TODO: switch to fog models and .wait_for { ready? }
+      min_size: min_size
+    }.merge(create_options))
+    sleep 10
   end
 
   def destroy!

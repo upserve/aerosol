@@ -37,12 +37,11 @@ class Aerosol::LaunchConfiguration
     ensure_present! :image_id, :instance_type
 
     info self.to_s
-    conn.create_launch_configuration(
+    conn.create_launch_configuration({
       image_id: image_id,
       instance_type: instance_type,
       launch_configuration_name: launch_configuration_name,
-      **create_options
-    )
+    }.merge(create_options))
     sleep 10 # TODO: switch to fog models and .wait_for { ready? }
   end
 
