@@ -19,6 +19,16 @@ class Aerosol::LaunchConfiguration
     end
   end
 
+  def ami(name=nil)
+    warn 'Warning: Use `image_id` instead `ami` for a launch configuration'
+    image_id(name)
+  end
+
+  def iam_role(name=nil)
+    warn 'Warning: Use `iam_instance_profile` instead `iam_role` for a launch configuration'
+    iam_instance_profile(name)
+  end
+
   def security_group(group)
     security_groups << group
   end
