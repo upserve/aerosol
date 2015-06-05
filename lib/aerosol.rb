@@ -1,3 +1,4 @@
+require 'yaml'
 require 'aws-sdk'
 require 'dockly/util'
 

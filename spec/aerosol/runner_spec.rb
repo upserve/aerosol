@@ -111,82 +111,135 @@ describe Aerosol::Runner do
   end
 
   describe '#old_instances' do
-    let!(:asg1) do
-      Aerosol::AutoScaling.new! do
-        name :old_instances_asg_1
-        availability_zones 'us-east-1'
-        min_size 5
-        max_size 5
-        tag 'Deploy' => 'old_instances_deploy', 'GitSha' => 1
-        launch_configuration do
-          ami 'fake-ami'
-          instance_type 'm1.large'
-          stub(:sleep)
-        end
-        stub(:sleep)
-      end.tap(&:create)
-    end
-    let!(:asg2) do
-      Aerosol::AutoScaling.new! do
-        name :old_instances_asg_2
-        availability_zones 'us-east-1'
-        min_size 5
-        max_size 5
-        launch_configuration do
-          ami 'fake-ami'
-          instance_type 'm1.large'
-          stub(:sleep)
-        end
-        tag 'Deploy' => 'old_instances_deploy', 'GitSha' => 2
-        stub(:sleep)
-      end.tap(&:create)
-    end
-    let!(:asg3) do
-      Aerosol::AutoScaling.new! do
-        name :old_instances_asg_3
-        availability_zones 'us-east-1'
-        min_size 5
-        max_size 5
-        tag 'Deploy' => 'old_instances_deploy', 'GitSha' => 3
-        launch_configuration do
-          ami 'fake-ami'
-          instance_type 'm1.large'
-          stub(:sleep)
-        end
-        stub(:sleep)
-      end.tap(&:create)
-    end
+    before do
+      allow(Aerosol::Util).to receive(:git_sha).and_return('1')
+      Aerosol::AWS.auto_scaling.stub_responses(:describe_launch_configurations, {
+        launch_configurations: [
+          {
+            launch_configuration_name: 'launch_config-1',
+            image_id: 'ami-1234567',
+            instance_type: 'm1.large'
+          },
+          {
+            launch_configuration_name: 'launch_config-2',
+            image_id: 'ami-1234567',
+            instance_type: 'm1.large'
+          },
+          {
+            launch_configuration_name: 'launch_config-3',
+            image_id: 'ami-1234567',
+            instance_type: 'm1.large'
+          }
+        ],
+        next_token: nil
+      })
+      Aerosol::AWS.auto_scaling.stub_responses(:describe_auto_scaling_groups, {
+        auto_scaling_groups: [
+          {
+            auto_scaling_group_name: 'auto_scaling_group-1',
+            launch_configuration_name: 'launch_config-1',
+            min_size: 1,
+            max_size: 1,
+            desired_capacity: 1,
+            default_cooldown: 300,
+            availability_zones: ['us-east-1a'],
+            health_check_type: 'EC2',
+            created_time: Time.new(2015, 01, 01, 01, 01, 01),
+            tags: [{ key: 'Deploy', value: 'auto_scaling_group'}, { key: 'GitSha', value: '1' }]
+          },
+          {
+            auto_scaling_group_name: 'auto_scaling_group-2',
+            launch_configuration_name: 'launch_config-2',
+            min_size: 1,
+            max_size: 1,
+            desired_capacity: 1,
+            default_cooldown: 300,
+            availability_zones: ['us-east-1a'],
+            health_check_type: 'EC2',
+            created_time: Time.new(2015, 01, 01, 01, 01, 01),
+            tags: [{ key: 'Deploy', value: 'auto_scaling_group'}, { key: 'GitSha', value: '2'}]
+          },
+          {
+            auto_scaling_group_name: 'auto_scaling_group-3',
+            launch_configuration_name: 'launch_config-3',
+            min_size: 1,
+            max_size: 1,
+            desired_capacity: 1,
+            default_cooldown: 300,
+            availability_zones: ['us-east-1a'],
+            health_check_type: 'EC2',
+            created_time: Time.new(2015, 01, 01, 01, 01, 01),
+            tags: [{ key: 'Deploy', value: 'auto_scaling_group'}, { key: 'GitSha', value: '3'}]
+          }
+        ],
+        next_token: nil
+      })
 
-    let!(:deploy) do
+      Aerosol::AWS.auto_scaling.stub_responses(:describe_auto_scaling_instances, {
+        auto_scaling_instances: 3.times.map do |i|
+          {
+            instance_id: "i-#{123456+i}",
+            auto_scaling_group_name: "auto_scaling_group-#{i+1}",
+            launch_configuration_name: "launch_config-#{i+1}"
+          }
+        end,
+        next_token: nil
+      })
+
       Aerosol::Deploy.new! do
         name :old_instances_deploy
-        auto_scaling :old_instances_asg_1
+        auto_scaling do
+          name :auto_scaling_group
+          min_size 1
+          max_size 1
+
+          launch_configuration do
+            name :launch_config
+            image_id 'fake-ami'
+            instance_type 'm1.large'
+          end
+        end
       end
     end
 
-    before(:all) { Aerosol::AutoScaling.all.map(&:destroy) }
+    let!(:all_lcs) { Aerosol::LaunchConfiguration.all }
+    let!(:all_asgs) { Aerosol::AutoScaling.all }
+
+    let(:all_instance_ids) { Aerosol::Instance.all.map(&:instance_id).sort }
+    let(:old_instance_ids) { subject.old_instances.map(&:instance_id).sort }
+
+    let(:asg1) { all_asgs[0] }
+    let(:asg2) { all_asgs[1] }
+    let(:asg3) { all_asgs[2] }
+    let(:combined_instances) {
+      asg2.launch_configuration.all_instances + asg3.launch_configuration.all_instances
+    }
+    let(:combined_instance_ids) { combined_instances.map(&:instance_id).sort }
+
+    let(:all_asgs_instances) {
+      [asg1, asg2, asg3].map(&:launch_configuration).map(&:all_instances).flatten
+    }
+    let(:all_asgs_instance_ids) { all_asgs_instances.map(&:instance_id).sort }
 
     it 'returns each instance that is not a member of the current auto scaling group' do
       subject.with_deploy :old_instances_deploy do
-        subject.old_instances.map(&:id).sort.should ==
-          (asg2.launch_configuration.all_instances + asg3.launch_configuration.all_instances).map(&:id).sort
-        subject.old_instances.length.should == 10
+        expect(old_instance_ids).to eq(combined_instance_ids)
+        subject.old_instances.length.should == 2
       end
     end
 
     it 'does not include any of the current auto scaling group\'s instances' do
       subject.with_deploy :old_instances_deploy do
         asg1.launch_configuration.all_instances.should be_none { |inst|
-          subject.old_instances.map(&:id).include?(inst.id)
+          old_instance_ids.include?(inst.instance_id)
         }
       end
     end
 
     it 'does not modify the existing instances' do
-      Aerosol::Instance.all.map(&:id).sort.should ==
-        [asg1, asg2, asg3].map(&:launch_configuration).map(&:all_instances).flatten.map(&:id).sort
+      expect(all_instance_ids).to eq(all_asgs_instance_ids)
       subject.with_deploy :old_instances_deploy do
-        subject.new_instances.map(&:id).sort.should == asg1.all_instances.map(&:id).sort
+        expect(subject.new_instances.map(&:instance_id).sort).to eq(asg1.launch_configuration.all_instances.map(&:instance_id).sort)
       end
     end
   end
@@ -195,10 +248,10 @@ describe Aerosol::Runner do
     let!(:lc7) do
       Aerosol::LaunchConfiguration.new! do
         name :lc7
-        ami 'fake-ami-how-scandalous'
+        image_id 'fake-ami-how-scandalous'
         instance_type 'm1.large'
         stub(:sleep)
-      end.tap(&:create)
+      end
     end
     let!(:asg7) do
       Aerosol::AutoScaling.new! do
@@ -208,21 +261,21 @@ describe Aerosol::Runner do
         max_size 3
         launch_configuration :lc7
         stub(:sleep)
-      end.tap(&:create)
+      end
     end
     let!(:instance1) do
       Aerosol::Instance.from_hash(
         {
-          'InstanceId' => 'z0',
-          'LaunchConfigurationName' => lc7.aws_identifier
+          instance_id: 'z0',
+          launch_configuration_name: lc7.launch_configuration_name
         }
       )
     end
     let!(:instance2) do
-      double(:launch_configuration => double(:aws_identifier => 'lc7-8891022'))
+      double(:launch_configuration => double(:launch_configuration_name => 'lc7-8891022'))
     end
     let!(:instance3) do
-      double(:launch_configuration => double(:aws_identifier => 'lc0-8891022'))
+      double(:launch_configuration => double(:launch_configuration_name => 'lc0-8891022'))
     end
 
     let!(:deploy) do
@@ -235,6 +288,7 @@ describe Aerosol::Runner do
     before do
       Aerosol::Instance.stub(:all).and_return([instance1, instance2, instance3])
     end
+
     it 'returns each instance that is a member of the current launch config' do
       subject.with_deploy :new_instances_deploy do
         subject.new_instances.should == [instance1]
@@ -247,7 +301,7 @@ describe Aerosol::Runner do
       3.times.map do |i|
         double(:instance,
                :public_hostname => 'not-a-real-hostname',
-               :id => "test#{i}")
+               :instance_id => "test#{i}")
       end
     end
     let(:timeout_length) { 0.01 }
@@ -304,7 +358,7 @@ describe Aerosol::Runner do
 
   describe '#start_tailing_logs' do
     let(:ssh) { double(:ssh) }
-    let(:instance) { double(:instance, id: '2') }
+    let(:instance) { double(Aerosol::Instance, instance_id: '2') }
     let(:command) { 'sudo tail -f /var/log/syslog' }
     let(:tail_logs) { true }
     let(:log_files) { ['/var/log/syslog'] }
@@ -319,7 +373,7 @@ describe Aerosol::Runner do
         let(:old_log_fork) { double(:old_log_fork) }
 
         it 'keeps the old one' do
-          subject.log_pids[instance.id] = old_log_fork
+          subject.log_pids[instance.instance_id] = old_log_fork
           expect(subject.start_tailing_logs(ssh, instance)).to be(old_log_fork)
         end
       end
@@ -355,7 +409,7 @@ describe Aerosol::Runner do
 
   describe '#ssh_fork', :local do
     let(:ssh) { Aerosol::Connection.new(user: `whoami`.strip, host: 'www.doesntusethis.com') }
-    let(:instance) { double(:instance, id: '1', public_hostname: 'localhost') }
+    let(:instance) { double(Aerosol::Instance, instance_id: '1', public_hostname: 'localhost') }
     let(:ssh_fork) {
       subject.ssh_fork(command, ssh, instance)
     }
@@ -388,10 +442,10 @@ describe Aerosol::Runner do
     let!(:lc) do
       Aerosol::LaunchConfiguration.new! do
         name :stop_app_launch_config
-        ami 'stop-app-ami-123'
+        image_id 'stop-app-ami-123'
         instance_type 'm1.large'
         stub(:sleep)
-      end.tap(&:create)
+      end
     end
     let!(:asg) do
       Aerosol::AutoScaling.new! do
@@ -401,13 +455,13 @@ describe Aerosol::Runner do
         max_size 5
         launch_configuration :stop_app_launch_config
         stub(:sleep)
-      end.tap(&:create)
+      end
     end
-    let!(:instances) { Aerosol::Instance.all.select { |instance| instance.ami == lc.ami } }
     let!(:session) { double(:session) }
     let!(:deploy) do
       s = session
       Aerosol::Deploy.new! do
+        auto_scaling :stop_app_auto_scaling_group
         name :stop_app_deploy
         ssh :stop_app_ssh do
           user 'dad'
@@ -418,9 +472,52 @@ describe Aerosol::Runner do
     end
 
     it 'sshs into each old instance and calls the stop command' do
+      Aerosol::AWS.auto_scaling.stub_responses(:describe_launch_configurations, {
+        launch_configurations: [
+          { launch_configuration_name: 'stop_app_launch_config-123456', image_id: 'stop-app-ami-123', instance_type: 'm1.large' }
+        ],
+        next_token: nil
+      })
+      Aerosol::AWS.auto_scaling.stub_responses(:describe_auto_scaling_groups, {
+        auto_scaling_groups: [
+          {
+            auto_scaling_group_name: 'stop_app_auto_scaling_group-123456',
+            min_size: 5,
+            max_size: 5,
+            desired_capacity: 5,
+            launch_configuration_name: 'stop_app_launch_config-123456',
+            tags: [
+              {
+                key: 'GitSha',
+                value: '123456',
+              },
+              {
+                key: 'Deploy',
+                value: 'stop_app_auto_scaling_group'
+              }
+            ]
+          }
+        ],
+        next_token: nil
+      })
+      Aerosol::AWS.auto_scaling.stub_responses(:describe_auto_scaling_instances, {
+        auto_scaling_instances: 5.times.map do |n|
+          { launch_configuration_name: 'stop_app_launch_config-123456' }
+        end
+      })
+      Aerosol::AWS.compute.stub_responses(:describe_instances, {
+        reservations: [
+          {
+            instances: [
+              {
+                public_dns_name: 'test'
+              }
+            ]
+          }
+        ]
+      })
       session.should_receive(:exec!).with(deploy.stop_command).exactly(5).times
       session.should_receive(:loop).exactly(5).times
-      subject.stub(:old_instances).and_return(instances)
       subject.with_deploy :stop_app_deploy do
         subject.stop_app
       end
