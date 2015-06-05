@@ -62,7 +62,10 @@ describe Aerosol::LaunchConfiguration do
     context 'when everything is present' do
       context 'and the launch configuration already exists' do
         it 'raises an error' do
-          Aerosol::AWS.auto_scaling.stub_responses(:create_launch_configuration, Aws::AutoScaling::Errors::AlreadyExists)
+          Aerosol::AWS.auto_scaling.stub_responses(
+            :create_launch_configuration,
+            Aws::AutoScaling::Errors::AlreadyExists
+          )
           expect { subject.create! }.to raise_error
         end
       end
@@ -91,7 +94,10 @@ describe Aerosol::LaunchConfiguration do
     context 'when the launch_configuration_name is present' do
       context 'but the launch configuration does not exist' do
         it 'raises an error' do
-          Aerosol::AWS.auto_scaling.stub_responses(:delete_launch_configuration, Aws::AutoScaling::Errors::ValidationError)
+          Aerosol::AWS.auto_scaling.stub_responses(
+            :delete_launch_configuration,
+            Aws::AutoScaling::Errors::ValidationError
+          )
           expect { subject.destroy! }.to raise_error
         end
       end
@@ -248,8 +254,18 @@ describe Aerosol::LaunchConfiguration do
     describe 'repeats until no NextToken' do
       it 'should include both autoscaling groups lists' do
         Aerosol::AWS.auto_scaling.stub_responses(:describe_launch_configurations, [
-          { launch_configurations: [{ launch_configuration_name: '1' }, { launch_configuration_name: '4' }], next_token: 'yes' },
-          { launch_configurations: [{ launch_configuration_name: '2' }, { launch_configuration_name: '3' }], next_token: nil }
+          {
+            launch_configurations: [
+              { launch_configuration_name: '1' }, { launch_configuration_name: '4' }
+            ],
+            next_token: 'yes'
+          },
+          {
+            launch_configurations: [
+              { launch_configuration_name: '2' }, { launch_configuration_name: '3' }
+            ],
+            next_token: nil
+          }
         ])
         expect(Aerosol::LaunchConfiguration.request_all.map(&:launch_configuration_name)).to eq(['1','4','2','3'])
       end

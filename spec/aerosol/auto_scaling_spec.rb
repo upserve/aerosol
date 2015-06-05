@@ -20,8 +20,12 @@ describe Aerosol::AutoScaling do
 
   before do
     subject.stub(:sleep)
-    Aerosol::AWS.auto_scaling.stub_responses(:describe_launch_configurations, { launch_configurations: previous_launch_configurations, next_token: nil })
-    Aerosol::AWS.auto_scaling.stub_responses(:describe_auto_scaling_groups, { auto_scaling_groups: previous_auto_scaling_groups, next_token: nil })
+    Aerosol::AWS.auto_scaling.stub_responses(:describe_launch_configurations, {
+      launch_configurations: previous_launch_configurations, next_token: nil
+    })
+    Aerosol::AWS.auto_scaling.stub_responses(:describe_auto_scaling_groups, {
+      auto_scaling_groups: previous_auto_scaling_groups, next_token: nil
+    })
   end
 
   let(:block) { Proc.new { } }
@@ -189,7 +193,10 @@ describe Aerosol::AutoScaling do
 
     context 'when the argument exists' do
       it 'returns true' do
-        Aerosol::AWS.auto_scaling.stub_responses(:describe_auto_scaling_groups, { auto_scaling_groups: [{ auto_scaling_group_name: 'test' }], next_token: nil })
+        Aerosol::AWS.auto_scaling.stub_responses(:describe_auto_scaling_groups, {
+          auto_scaling_groups: [{ auto_scaling_group_name: 'test' }],
+          next_token: nil
+        })
         subject.exists?('test').should be_true
       end
     end
@@ -213,8 +220,18 @@ describe Aerosol::AutoScaling do
     describe 'repeats until no NextToken' do
       it 'should include both autoscaling groups lists' do
         Aerosol::AWS.auto_scaling.stub_responses(:describe_auto_scaling_groups, [
-          { auto_scaling_groups: [{ auto_scaling_group_name: '1' }, { auto_scaling_group_name: '4' }], next_token: 'token'},
-          { auto_scaling_groups: [{ auto_scaling_group_name: '2' }, { auto_scaling_group_name: '3' }], next_token: nil}
+          {
+            auto_scaling_groups: [
+              { auto_scaling_group_name: '1' }, { auto_scaling_group_name: '4' }
+            ],
+            next_token: 'token'
+          },
+          {
+            auto_scaling_groups: [
+              { auto_scaling_group_name: '2' }, { auto_scaling_group_name: '3' }
+            ],
+            next_token: nil
+          }
         ])
 
         expect(Aerosol::AutoScaling.request_all.map(&:auto_scaling_group_name)).to eq(['1','4','2','3'])

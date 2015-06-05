@@ -211,6 +211,7 @@ describe Aerosol::Runner do
     let(:asg1) { all_asgs[0] }
     let(:asg2) { all_asgs[1] }
     let(:asg3) { all_asgs[2] }
+    let(:asg1_instances) { asg1.launch_configuration.all_instances.map(&:instance_id) }
     let(:combined_instances) {
       asg2.launch_configuration.all_instances + asg3.launch_configuration.all_instances
     }
@@ -239,7 +240,7 @@ describe Aerosol::Runner do
     it 'does not modify the existing instances' do
       expect(all_instance_ids).to eq(all_asgs_instance_ids)
       subject.with_deploy :old_instances_deploy do
-        expect(subject.new_instances.map(&:instance_id).sort).to eq(asg1.launch_configuration.all_instances.map(&:instance_id).sort)
+        expect(subject.new_instances.map(&:instance_id).sort).to eq(asg1_instances.sort)
       end
     end
   end
@@ -474,7 +475,11 @@ describe Aerosol::Runner do
     it 'sshs into each old instance and calls the stop command' do
       Aerosol::AWS.auto_scaling.stub_responses(:describe_launch_configurations, {
         launch_configurations: [
-          { launch_configuration_name: 'stop_app_launch_config-123456', image_id: 'stop-app-ami-123', instance_type: 'm1.large' }
+          {
+            launch_configuration_name: 'stop_app_launch_config-123456',
+            image_id: 'stop-app-ami-123',
+            instance_type: 'm1.large'
+          }
         ],
         next_token: nil
       })
