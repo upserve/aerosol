@@ -144,7 +144,10 @@ describe Aerosol::LaunchConfiguration do
         it 'does not call #create!' do
           Aerosol::AWS.auto_scaling.stub_responses(:describe_launch_configurations, {
             launch_configurations: [{
-              launch_configuration_name: subject.launch_configuration_name
+              launch_configuration_name: subject.launch_configuration_name,
+              image_id: 'ami-1235535',
+              instance_type: 'm3.large',
+              created_time: Time.at(1)
             }],
             next_token: nil
           })
@@ -192,7 +195,10 @@ describe Aerosol::LaunchConfiguration do
         it 'calls #destroy!' do
           Aerosol::AWS.auto_scaling.stub_responses(:describe_launch_configurations, {
             launch_configurations: [{
-              launch_configuration_name: subject.launch_configuration_name
+              launch_configuration_name: subject.launch_configuration_name,
+              image_id: 'ami-1235535',
+              instance_type: 'm3.large',
+              created_time: Time.at(1)
             }],
             next_token: nil
           })
@@ -229,7 +235,10 @@ describe Aerosol::LaunchConfiguration do
       it 'returns true' do
         Aerosol::AWS.auto_scaling.stub_responses(:describe_launch_configurations, {
           launch_configurations: [{
-            launch_configuration_name: instance.launch_configuration_name
+            launch_configuration_name: instance.launch_configuration_name,
+            image_id: 'ami-1235535',
+            instance_type: 'm3.large',
+            created_time: Time.at(1)
           }],
           next_token: nil
         })
@@ -256,13 +265,33 @@ describe Aerosol::LaunchConfiguration do
         Aerosol::AWS.auto_scaling.stub_responses(:describe_launch_configurations, [
           {
             launch_configurations: [
-              { launch_configuration_name: '1' }, { launch_configuration_name: '4' }
+              {
+                launch_configuration_name: '1',
+                image_id: 'ami-1235535',
+                instance_type: 'm3.large',
+                created_time: Time.at(1)
+              }, {
+                launch_configuration_name: '4',
+                image_id: 'ami-1235535',
+                instance_type: 'm3.large',
+                created_time: Time.at(1)
+              }
             ],
             next_token: 'yes'
           },
           {
             launch_configurations: [
-              { launch_configuration_name: '2' }, { launch_configuration_name: '3' }
+              {
+                launch_configuration_name: '2',
+                image_id: 'ami-1235535',
+                instance_type: 'm3.large',
+                created_time: Time.at(1)
+              }, {
+                launch_configuration_name: '3',
+                image_id: 'ami-1235535',
+                instance_type: 'm3.large',
+                created_time: Time.at(1)
+              }
             ],
             next_token: nil
           }
@@ -290,12 +319,14 @@ describe Aerosol::LaunchConfiguration do
           {
             launch_configuration_name: 'test',
             image_id: 'ami1',
-            instance_type: 'm1.large'
+            instance_type: 'm1.large',
+            created_time: Time.at(1)
           },
           {
             launch_configuration_name: 'test2',
             image_id: 'ami2',
-            instance_type: 'm1.large'
+            instance_type: 'm1.large',
+            created_time: Time.at(1)
           }
         ]
       }

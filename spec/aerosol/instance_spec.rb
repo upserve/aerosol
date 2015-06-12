@@ -25,7 +25,8 @@ describe Aerosol::Instance do
               availability_zone: 'us-east-2',
               lifecycle_state: 'InService',
               health_status: 'GOOD',
-              launch_configuration_name: launch_configuration.launch_configuration_name.to_s
+              launch_configuration_name: launch_configuration.launch_configuration_name.to_s,
+              auto_scaling_group_name: "test-#{i}"
             }
           end
         })
@@ -47,7 +48,8 @@ describe Aerosol::Instance do
             availability_zone: 'us-east-2',
             lifecycle_state: 'InService',
             health_status: 'GOOD',
-            launch_configuration_name: launch_configuration.launch_configuration_name.to_s
+            launch_configuration_name: launch_configuration.launch_configuration_name.to_s,
+            auto_scaling_group_name: 'test'
           }
         ]
       })
@@ -66,11 +68,11 @@ describe Aerosol::Instance do
           }]
         }]
       })
-      subject.image_id.should == launch_configuration.image_id
-      subject.description[:instance_type].should == launch_configuration.instance_type
-    end
 
-    its(:public_hostname) { should_not be_nil }
-    its(:private_ip_address) { should_not be_nil }
+      expect(subject.image_id).to eq(launch_configuration.image_id)
+      expect(subject.description[:instance_type]).to eq(launch_configuration.instance_type)
+      expect(subject.public_hostname).to_not be_nil
+      expect(subject.private_ip_address).to_not be_nil
+    end
   end
 end

@@ -118,17 +118,20 @@ describe Aerosol::Runner do
           {
             launch_configuration_name: 'launch_config-1',
             image_id: 'ami-1234567',
-            instance_type: 'm1.large'
+            instance_type: 'm1.large',
+            created_time: Time.at(1)
           },
           {
             launch_configuration_name: 'launch_config-2',
             image_id: 'ami-1234567',
-            instance_type: 'm1.large'
+            instance_type: 'm1.large',
+            created_time: Time.at(1)
           },
           {
             launch_configuration_name: 'launch_config-3',
             image_id: 'ami-1234567',
-            instance_type: 'm1.large'
+            instance_type: 'm1.large',
+            created_time: Time.at(1)
           }
         ],
         next_token: nil
@@ -180,7 +183,10 @@ describe Aerosol::Runner do
           {
             instance_id: "i-#{123456+i}",
             auto_scaling_group_name: "auto_scaling_group-#{i+1}",
-            launch_configuration_name: "launch_config-#{i+1}"
+            launch_configuration_name: "launch_config-#{i+1}",
+            availability_zone: 'us-east-1a',
+            lifecycle_state: 'InService',
+            health_status: 'Healthy'
           }
         end,
         next_token: nil
@@ -478,7 +484,8 @@ describe Aerosol::Runner do
           {
             launch_configuration_name: 'stop_app_launch_config-123456',
             image_id: 'stop-app-ami-123',
-            instance_type: 'm1.large'
+            instance_type: 'm1.large',
+            created_time: Time.at(1)
           }
         ],
         next_token: nil
@@ -490,6 +497,10 @@ describe Aerosol::Runner do
             min_size: 5,
             max_size: 5,
             desired_capacity: 5,
+            default_cooldown: 300,
+            availability_zones: ['us-east-1a'],
+            health_check_type: 'EC2',
+            created_time: Time.at(1),
             launch_configuration_name: 'stop_app_launch_config-123456',
             tags: [
               {
@@ -507,7 +518,14 @@ describe Aerosol::Runner do
       })
       Aerosol::AWS.auto_scaling.stub_responses(:describe_auto_scaling_instances, {
         auto_scaling_instances: 5.times.map do |n|
-          { launch_configuration_name: 'stop_app_launch_config-123456' }
+          {
+            launch_configuration_name: 'stop_app_launch_config-123456',
+            instance_id: "i-#{1234567+n}",
+            auto_scaling_group_name: 'stop_app_launch_config-123456',
+            availability_zone: 'us-east-1a',
+            lifecycle_state: 'InService',
+            health_status: 'Running'
+          }
         end
       })
       Aerosol::AWS.compute.stub_responses(:describe_instances, {
