@@ -120,7 +120,10 @@ describe Aerosol::AutoScaling do
 
     context 'when there is no such auto-scaling group' do
       it 'raises an error' do
-        Aerosol::AWS.auto_scaling.stub_responses(:delete_auto_scaling_group, Aws::AutoScaling::Errors::ValidationError)
+        Aerosol::AWS.auto_scaling.stub_responses(
+          :delete_auto_scaling_group,
+          Aws::AutoScaling::Errors::ValidationError.new(nil, nil)
+        )
 
         expect { subject.destroy! }.to raise_error(Aws::AutoScaling::Errors::ValidationError)
       end
@@ -194,7 +197,17 @@ describe Aerosol::AutoScaling do
     context 'when the argument exists' do
       it 'returns true' do
         Aerosol::AWS.auto_scaling.stub_responses(:describe_auto_scaling_groups, {
-          auto_scaling_groups: [{ auto_scaling_group_name: 'test' }],
+          auto_scaling_groups: [{
+            auto_scaling_group_name: 'test',
+            launch_configuration_name: 'test',
+            min_size: 1,
+            max_size: 1,
+            desired_capacity: 1,
+            default_cooldown: 300,
+            availability_zones: ['us-east-1a'],
+            health_check_type: 'EC2',
+            created_time: Time.at(1)
+          }],
           next_token: nil
         })
         subject.exists?('test').should be_true
@@ -222,13 +235,53 @@ describe Aerosol::AutoScaling do
         Aerosol::AWS.auto_scaling.stub_responses(:describe_auto_scaling_groups, [
           {
             auto_scaling_groups: [
-              { auto_scaling_group_name: '1' }, { auto_scaling_group_name: '4' }
+              {
+                auto_scaling_group_name: '1',
+                launch_configuration_name: '1',
+                min_size: 1,
+                max_size: 1,
+                desired_capacity: 1,
+                default_cooldown: 300,
+                availability_zones: ['us-east-1a'],
+                health_check_type: 'EC2',
+                created_time: Time.at(1)
+              }, {
+                auto_scaling_group_name: '4',
+                launch_configuration_name: '4',
+                min_size: 1,
+                max_size: 1,
+                desired_capacity: 1,
+                default_cooldown: 300,
+                availability_zones: ['us-east-1a'],
+                health_check_type: 'EC2',
+                created_time: Time.at(1)
+              }
             ],
             next_token: 'token'
           },
           {
             auto_scaling_groups: [
-              { auto_scaling_group_name: '2' }, { auto_scaling_group_name: '3' }
+              {
+                auto_scaling_group_name: '2',
+                launch_configuration_name: '2',
+                min_size: 1,
+                max_size: 1,
+                desired_capacity: 1,
+                default_cooldown: 300,
+                availability_zones: ['us-east-1a'],
+                health_check_type: 'EC2',
+                created_time: Time.at(1)
+              }, {
+                auto_scaling_group_name: '3',
+                launch_configuration_name: '3',
+                min_size: 1,
+                max_size: 1,
+                desired_capacity: 1,
+                default_cooldown: 300,
+                availability_zones: ['us-east-1a'],
+                health_check_type: 'EC2',
+                created_time: Time.at(1)
+              }
             ],
             next_token: nil
           }
@@ -259,7 +312,11 @@ describe Aerosol::AutoScaling do
             min_size: 1,
             max_size: 3,
             availability_zones: ['us-east-1'],
-            launch_configuration_name: launch_configuration.name.to_s
+            launch_configuration_name: launch_configuration.name.to_s,
+            desired_capacity: 1,
+            default_cooldown: 300,
+            health_check_type: 'EC2',
+            created_time: Time.at(1)
           },
           {
             auto_scaling_group_name: 'test2',
@@ -267,6 +324,10 @@ describe Aerosol::AutoScaling do
             max_size: 4,
             availability_zones: ['us-east-2'],
             launch_configuration_name: launch_configuration.name.to_s,
+            desired_capacity: 1,
+            default_cooldown: 300,
+            health_check_type: 'EC2',
+            created_time: Time.at(1),
             tags: [{ key: 'my_tag', value: 'is_sweet' }]
           }
         ]
@@ -304,7 +365,11 @@ describe Aerosol::AutoScaling do
           availability_zones: ['us-east-1'],
           launch_configuration_name: launch_configuration.launch_configuration_name,
           min_size: 1,
-          max_size: 2
+          max_size: 2,
+          desired_capacity: 1,
+          default_cooldown: 300,
+          health_check_type: 'EC2',
+          created_time: Time.at(1),
         }
       end
 
@@ -405,6 +470,14 @@ describe Aerosol::AutoScaling do
     let(:previous_auto_scaling_groups) {
       [{
         auto_scaling_group_name: 'all_instances_asg',
+        availability_zones: ['us-east-1'],
+        launch_configuration_name: launch_configuration.name.to_s,
+        min_size: 1,
+        max_size: 2,
+        desired_capacity: 1,
+        default_cooldown: 300,
+        health_check_type: 'EC2',
+        created_time: Time.at(1),
         instances: [{
           instance_id: 'i-1239013',
           availability_zone: 'us-east-1a',
