@@ -8,10 +8,8 @@ require 'aerosol'
 # and its subdirectories.
 #Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 
-Fog.mock!
-
-Aerosol::AWS.aws_access_key_id = 'MOCK_KEY'
-Aerosol::AWS.aws_secret_access_key = 'MOCK_SECRET'
+Aerosol::AWS.credentials = Aws::Credentials.new('MOCK_KEY', 'MOCK_SECRET')
+Aerosol::AWS.stub_responses = true
 Dockly::Util::Logger.disable! unless ENV['ENABLE_LOGGER'] == 'true'
 
 RSpec.configure do |config|

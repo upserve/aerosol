@@ -1,30 +1,42 @@
 require 'spec_helper'
-require 'fog/aws'
 
 describe Aerosol::AutoScaling do
-  let!(:launch_config) do
+  let(:launch_configuration_setup) do
     Aerosol::LaunchConfiguration.new! do
       name :my_launch_config_for_auto_scaling
-      ami 'ami :) :) :)'
+      image_id 'ami :) :) :)'
       instance_type 'm1.large'
       stub(:sleep)
-    end.tap(&:create)
+    end
   end
 
-  subject { described_class.new! }
-  before { subject.stub(:sleep) }
+  let(:launch_configuration) do
+    launch_configuration_setup.tap(&:create)
+  end
 
-  describe "#aws_identifier" do
-    before do
-      subject.instance_eval do
-        name :my_auto_scaling
-      end
-    end
+  subject { described_class.new!(&block) }
+  let(:previous_launch_configurations) { [] }
+  let(:previous_auto_scaling_groups) { [] }
+
+  before do
+    subject.stub(:sleep)
+    Aerosol::AWS.auto_scaling.stub_responses(:describe_launch_configurations, {
+      launch_configurations: previous_launch_configurations, next_token: nil
+    })
+    Aerosol::AWS.auto_scaling.stub_responses(:describe_auto_scaling_groups, {
+      auto_scaling_groups: previous_auto_scaling_groups, next_token: nil
+    })
+  end
+
+  let(:block) { Proc.new { } }
+
+  describe "#auto_scaling_group_name" do
+    let(:block) { Proc.new { name :my_auto_scaling } }
 
     context "with no namespace set" do
       let(:identifier) { "my_auto_scaling-#{Aerosol::Util.git_sha}" }
       it "returns a normal identifier" do
-        expect(subject.aws_identifier).to eq(identifier)
+        expect(subject.auto_scaling_group_name).to eq(identifier)
       end
     end
 
@@ -36,7 +48,7 @@ describe Aerosol::AutoScaling do
       after { Aerosol.instance_variable_set(:"@namespace", nil) }
 
       it "returns a namespaced identifier" do
-        expect(subject.aws_identifier).to eq(identifier)
+        expect(subject.auto_scaling_group_name).to eq(identifier)
       end
     end
   end
@@ -57,18 +69,12 @@ describe Aerosol::AutoScaling do
     end
 
     context 'when all of the required options are set' do
-      let!(:launch_configuration) do
-        Aerosol::LaunchConfiguration.new! do
-          ami 'fake_ami'
-          instance_type 'm1.large'
-          stub(:sleep)
-        end
-      end
       let(:availability_zone) { 'US' }
       let(:min_size) { 1 }
       let(:max_size) { 10 }
       let(:options) {
-        { :name => :my_group,
+        {
+          :name => :my_group,
           :launch_configuration => launch_configuration.name,
           :availability_zones => [availability_zone],
           :min_size => 1,
@@ -88,16 +94,9 @@ describe Aerosol::AutoScaling do
       end
 
       context 'when the launch configuration is known' do
-        before do
-          launch_configuration.create!
-        end
-
         it 'creates an auto-scaling group' do
           expect(subject.tags).to include('Deploy' => 'my_group')
-          expect { subject.create! }
-              .to change { subject.send(:conn).data[:auto_scaling_groups][subject.aws_identifier].class.to_s }
-              .from('NilClass')
-              .to('Hash')
+          subject.create!
         end
 
         context "when there is a namespace" do
@@ -117,30 +116,26 @@ describe Aerosol::AutoScaling do
   end
 
   describe '#destroy!' do
-    let(:aws_identifier) { subject.aws_identifier }
     subject { Aerosol::AutoScaling.new }
 
     context 'when there is no such auto-scaling group' do
       it 'raises an error' do
-        expect { subject.destroy! }
-            .to raise_error(Fog::AWS::AutoScaling::ValidationError)
+        Aerosol::AWS.auto_scaling.stub_responses(:delete_auto_scaling_group, Aws::AutoScaling::Errors::ValidationError)
+
+        expect { subject.destroy! }.to raise_error(Aws::AutoScaling::Errors::ValidationError)
       end
     end
 
     context 'when the auto-scaling group exists' do
-      before { subject.send(:conn).data[:auto_scaling_groups][aws_identifier] = aws_identifier }
-
       it 'deletes the auto-scaling group' do
-        expect { subject.destroy! }
-            .to change { subject.send(:conn).data[:auto_scaling_groups][aws_identifier] }
-            .from(aws_identifier)
-            .to(nil)
+        Aerosol::AWS.auto_scaling.stub_responses(:delete_auto_scaling_group, {})
+        expect { subject.destroy! }.to_not raise_error
       end
     end
   end
 
   describe '#create' do
-    context 'when the aws_identifier is nil' do
+    context 'when the auto_scaling_group_name is nil' do
       subject { described_class.new!(:name => 'nonsense') }
 
       it 'raises an error' do
@@ -148,7 +143,7 @@ describe Aerosol::AutoScaling do
       end
     end
 
-    context 'when the aws_identifier is present' do
+    context 'when the auto_scaling_group_name is present' do
       subject { described_class.new!(:name => 'nonsense2') }
 
       context 'when the model already exists' do
@@ -197,19 +192,12 @@ describe Aerosol::AutoScaling do
     subject { described_class }
 
     context 'when the argument exists' do
-      let!(:existing) {
-        conf = launch_config
-        subject.new! do
-          min_size  1
-          max_size  3
-          availability_zones  'us-east-1'
-          launch_configuration conf.name
-          stub(:sleep)
-        end.tap(&:create)
-      }
-
       it 'returns true' do
-        subject.exists?(existing.aws_identifier).should be_true
+        Aerosol::AWS.auto_scaling.stub_responses(:describe_auto_scaling_groups, {
+          auto_scaling_groups: [{ auto_scaling_group_name: 'test' }],
+          next_token: nil
+        })
+        subject.exists?('test').should be_true
       end
     end
 
@@ -217,7 +205,7 @@ describe Aerosol::AutoScaling do
       before do
         described_class.new! do
           name :exists_test_name
-          aws_identifier 'does-not-exist'
+          auto_scaling_group_name 'does-not-exist'
           stub(:sleep)
         end.destroy! rescue nil
       end
@@ -230,18 +218,23 @@ describe Aerosol::AutoScaling do
 
   describe '.request_all' do
     describe 'repeats until no NextToken' do
-      before do
-        allow(Aerosol::AutoScaling).to receive(:request_all_for_token).with(nil) do
-          { 'AutoScalingGroups' => [1, 4], 'NextToken' => 'token' }
-        end
-
-        allow(Aerosol::AutoScaling).to receive(:request_all_for_token).with('token') do
-          { 'AutoScalingGroups' => [2, 3], 'NextToken' => nil }
-        end
-      end
-
       it 'should include both autoscaling groups lists' do
-        expect(Aerosol::AutoScaling.request_all).to eq([1,4,2,3])
+        Aerosol::AWS.auto_scaling.stub_responses(:describe_auto_scaling_groups, [
+          {
+            auto_scaling_groups: [
+              { auto_scaling_group_name: '1' }, { auto_scaling_group_name: '4' }
+            ],
+            next_token: 'token'
+          },
+          {
+            auto_scaling_groups: [
+              { auto_scaling_group_name: '2' }, { auto_scaling_group_name: '3' }
+            ],
+            next_token: nil
+          }
+        ])
+
+        expect(Aerosol::AutoScaling.request_all.map(&:auto_scaling_group_name)).to eq(['1','4','2','3'])
       end
     end
   end
@@ -249,51 +242,52 @@ describe Aerosol::AutoScaling do
   describe '.all' do
     subject { described_class }
 
-    def destroy_all
-      Aerosol::AutoScaling.instances.values.each do |instance|
-        instance.destroy! rescue nil
-      end
-    end
-
-    after { destroy_all }
-
     context 'when there are no auto scaling groups' do
-      before { destroy_all }
-
+      before do
+        Aerosol::AWS.auto_scaling.stub_responses(:describe_auto_scaling_groups, [
+          { auto_scaling_groups: [], next_token: nil }
+        ])
+      end
       its(:all) { should be_empty }
     end
 
     context 'when there are auto scaling groups' do
-
-      let!(:insts) do
+      let(:insts) {
         [
           {
-            :min_size => 1,
-            :max_size => 3,
-            :availability_zones => 'us-east-1',
-            :launch_configuration => launch_config.name
+            auto_scaling_group_name: 'test',
+            min_size: 1,
+            max_size: 3,
+            availability_zones: ['us-east-1'],
+            launch_configuration_name: launch_configuration.name.to_s
           },
           {
-            :min_size => 2,
-            :max_size => 4,
-            :availability_zones => 'us-east-2',
-            :launch_configuration => launch_config.name,
-            :tag => { :my_tag => :is_sweet }
+            auto_scaling_group_name: 'test2',
+            min_size: 2,
+            max_size: 4,
+            availability_zones: ['us-east-2'],
+            launch_configuration_name: launch_configuration.name.to_s,
+            tags: [{ key: 'my_tag', value: 'is_sweet' }]
           }
-        ].map { |hash| subject.new!(hash).tap { |inst| inst.stub(:sleep); inst.create! } }
-      end
+        ]
+      }
 
       it 'returns each of them' do
-        subject.all.map(&:min_size).should == [1, 2]
-        subject.all.map(&:max_size).should == [3, 4]
-        subject.all.map(&:tags).should == [{
-            "GitSha" => Aerosol::Util.git_sha,
-            "Deploy" => insts.first.name.to_s
+        Aerosol::AWS.auto_scaling.stub_responses(:describe_auto_scaling_groups, {
+          auto_scaling_groups: insts,
+          next_token: nil
+        })
+        instances = subject.all
+        instances.map(&:min_size).should == [1, 2]
+        instances.map(&:max_size).should == [3, 4]
+        instances.map(&:tags).should == [{
+            'GitSha' => Aerosol::Util.git_sha,
+            'Deploy' => instances.first.name.to_s
           },
           {
-            "GitSha" => Aerosol::Util.git_sha,
-            "Deploy" => insts.last.name.to_s,
-            :my_tag => :is_sweet
+            'GitSha' => Aerosol::Util.git_sha,
+            'Deploy' => instances.last.name.to_s,
+            'my_tag' => 'is_sweet'
           }
         ]
       end
@@ -306,18 +300,18 @@ describe Aerosol::AutoScaling do
 
       let(:hash) do
         {
-          'AutoScalingGroupName' => 'test-auto-scaling',
-          'AvailabilityZones' => 'us-east-1',
-          'LaunchConfigurationName' => launch_config.aws_identifier,
-          'MinSize' => 1,
-          'MaxSize' => 2
+          auto_scaling_group_name: 'test-auto-scaling',
+          availability_zones: ['us-east-1'],
+          launch_configuration_name: launch_configuration.launch_configuration_name,
+          min_size: 1,
+          max_size: 2
         }
       end
 
       it 'creates a new auto scaling group with the specified values' do
-        auto_scaling.aws_identifier.should == 'test-auto-scaling'
-        auto_scaling.availability_zones.should == 'us-east-1'
-        auto_scaling.launch_configuration.should == launch_config
+        auto_scaling.auto_scaling_group_name.should == 'test-auto-scaling'
+        auto_scaling.availability_zones.should == ['us-east-1']
+        auto_scaling.launch_configuration.should == launch_configuration
         auto_scaling.min_size.should == 1
         auto_scaling.max_size.should == 2
       end
@@ -330,17 +324,17 @@ describe Aerosol::AutoScaling do
     context 'when the auto scaling group has already been initialized' do
       let(:old_hash) do
         {
-          'AutoScalingGroupName' => 'this-aws-id-abc-123',
-          'MinSize' => 16
+          auto_scaling_group_name: 'this-aws-id-abc-123',
+          min_size: 16
         }
       end
-      let(:new_hash) { old_hash.merge('MaxSize' => 40) }
+      let(:new_hash) { old_hash.merge(max_size: 40) }
       let!(:existing) { described_class.from_hash(old_hash) }
       let(:new) { described_class.from_hash(new_hash) }
 
-      it 'updates its values' do
+      it 'makes a new instance' do
         expect { new }.to change { described_class.instances.length }.by(1)
-        new.aws_identifier.should == 'this-aws-id-abc-123'
+        new.auto_scaling_group_name.should == 'this-aws-id-abc-123'
         new.min_size.should == 16
         new.max_size.should == 40
       end
@@ -405,12 +399,39 @@ describe Aerosol::AutoScaling do
         :availability_zones => [],
         :max_size => 10,
         :min_size => 4,
-        :launch_configuration => launch_config.name
+        :launch_configuration => launch_configuration.name
       )
     }
-
-    before { auto_scaling.stub(:sleep); auto_scaling.create! }
-    after { auto_scaling.destroy! }
+    let(:previous_auto_scaling_groups) {
+      [{
+        auto_scaling_group_name: 'all_instances_asg',
+        instances: [{
+          instance_id: 'i-1239013',
+          availability_zone: 'us-east-1a',
+          lifecycle_state: 'InService',
+          health_status: 'GOOD',
+          launch_configuration_name: launch_configuration.name.to_s
+        }, {
+          instance_id: 'i-1239014',
+          availability_zone: 'us-east-1a',
+          lifecycle_state: 'InService',
+          health_status: 'GOOD',
+          launch_configuration_name: launch_configuration.name.to_s
+        }, {
+          instance_id: 'i-1239015',
+          availability_zone: 'us-east-1a',
+          lifecycle_state: 'InService',
+          health_status: 'GOOD',
+          launch_configuration_name: launch_configuration.name.to_s
+        }, {
+          instance_id: 'i-1239016',
+          availability_zone: 'us-east-1a',
+          lifecycle_state: 'InService',
+          health_status: 'GOOD',
+          launch_configuration_name: launch_configuration.name.to_s
+        }]
+      }]
+    }
 
     it 'returns a list of instances associated with the group' do
       auto_scaling.all_instances.length.should == 4

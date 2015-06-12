@@ -3,28 +3,30 @@ class Aerosol::LaunchConfiguration
   include Dockly::Util::Logger::Mixin
 
   logger_prefix '[aerosol launch_configuration]'
-  aws_attribute :aws_identifier              => 'LaunchConfigurationName',
-                :ami                         => 'ImageId',
-                :instance_type               => 'InstanceType',
-                :security_groups             => 'SecurityGroups',
-                :user_data                   => 'UserData',
-                :iam_role                    => 'IamInstanceProfile',
-                :kernel_id                   => 'KernelId',
-                :key_name                    => 'KeyName',
-                :spot_price                  => 'SpotPrice',
-                :created_time                => 'CreatedTime',
-                :associate_public_ip_address => 'AssociatePublicIpAddress'
+  aws_attribute :launch_configuration_name, :image_id, :instance_type, :security_groups, :user_data,
+                :iam_instance_profile, :kernel_id, :key_name, :spot_price, :created_time,
+                :associate_public_ip_address
 
-  primary_key :aws_identifier
+  primary_key :launch_configuration_name
   default_value(:security_groups) { [] }
 
-  def aws_identifier(arg = nil)
+  def launch_configuration_name(arg = nil)
     if arg
-      raise "You cannot set the aws_identifer directly" unless from_aws
-      @aws_identifier = arg
+      raise "You cannot set the launch_configuration_name directly" unless from_aws
+      @launch_configuration_name = arg
     else
-      @aws_identifier || default_identifier
+      @launch_configuration_name || default_identifier
     end
+  end
+
+  def ami(name=nil)
+    warn 'Warning: Use `image_id` instead `ami` for a launch configuration'
+    image_id(name)
+  end
+
+  def iam_role(name=nil)
+    warn 'Warning: Use `iam_instance_profile` instead `iam_role` for a launch configuration'
+    iam_instance_profile(name)
   end
 
   def security_group(group)
@@ -32,31 +34,32 @@ class Aerosol::LaunchConfiguration
   end
 
   def create!
-    ensure_present! :ami, :instance_type
+    ensure_present! :image_id, :instance_type
 
     info self.to_s
-    conn.create_launch_configuration(ami, instance_type, aws_identifier, create_options)
+    conn.create_launch_configuration({
+      image_id: image_id,
+      instance_type: instance_type,
+      launch_configuration_name: launch_configuration_name,
+    }.merge(create_options))
     sleep 10 # TODO: switch to fog models and .wait_for { ready? }
   end
 
   def destroy!
     info self.to_s
-    conn.delete_launch_configuration(aws_identifier)
+    conn.delete_launch_configuration(launch_configuration_name: launch_configuration_name)
   end
 
   def all_instances
     Aerosol::Instance.all.select { |instance|
       !instance.launch_configuration.nil? &&
-        (instance.launch_configuration.aws_identifier == self.aws_identifier)
+        (instance.launch_configuration.launch_configuration_name == launch_configuration_name)
     }.each(&:description)
   end
 
   def self.request_all_for_token(next_token)
-    options = next_token.nil? ? {} : { 'NextToken' => next_token }
-    Aerosol::AWS.auto_scaling
-                .describe_launch_configurations(options)
-                .body
-                .[]('DescribeLaunchConfigurationsResult')
+    options = next_token.nil? ? {} : { next_token: next_token }
+    Aerosol::AWS.auto_scaling.describe_launch_configurations(options)
   end
 
   def self.request_all
@@ -65,21 +68,21 @@ class Aerosol::LaunchConfiguration
 
     begin
       new_lcs = request_all_for_token(next_token)
-      lcs.concat(new_lcs['LaunchConfigurations'])
-      next_token = new_lcs['NextToken']
-    end while !next_token.nil?
+      lcs.concat(new_lcs.launch_configurations)
+      next_token = new_lcs.next_token
+    end until next_token.nil?
 
     lcs
   end
 
   def to_s
     %{Aerosol::LaunchConfiguration { \
-"aws_identifier" => "#{aws_identifier}", \
-"ami" => "#{ami}", \
+"launch_configuration_name" => "#{launch_configuration_name}", \
+"image_id" => "#{image_id}", \
 "instance_type" => "#{instance_type}", \
 "security_groups" => #{security_groups.to_s}, \
 "user_data" => "#{user_data}", \
-"iam_role" => "#{iam_role}", \
+"iam_instance_profile" => "#{iam_instance_profile}", \
 "kernel_id" => "#{kernel_id}", \
 "key_name" => "#{key_name}", \
 "spot_price" => "#{spot_price}", \
@@ -90,13 +93,13 @@ class Aerosol::LaunchConfiguration
 private
   def create_options
     { # TODO Add dsl so that 'BlockDeviceMappings' may be specified
-      'IamInstanceProfile' => iam_role,
-      'KernelId' => kernel_id,
-      'KeyName' => key_name,
-      'SecurityGroups' => security_groups,
-      'SpotPrice' => spot_price,
-      'UserData' => Aerosol::Util.strip_heredoc(user_data || ''),
-      'AssociatePublicIpAddress' => associate_public_ip_address
+      iam_instance_profile: iam_instance_profile,
+      kernel_id: kernel_id,
+      key_name: key_name,
+      security_groups: security_groups,
+      spot_price: spot_price,
+      user_data: Aerosol::Util.strip_heredoc(user_data || ''),
+      associate_public_ip_address: associate_public_ip_address
     }.reject { |k, v| v.nil? }
   end
 

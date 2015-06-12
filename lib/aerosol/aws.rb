@@ -1,5 +1,3 @@
-require 'fog/aws'
-
 # This module holds the connections for all AWS services used by the gem.
 module Aerosol::AWS
   extend self
@@ -40,23 +38,16 @@ module Aerosol::AWS
   end
 
   def creds
-    attrs = Hash[env_attrs.map { |attr| [attr, public_send(attr)] }].reject { |k, v| v.nil? }
-    if attrs.empty?
-      if ENV['FOG_CREDENTIAL']
-        attrs = {} # let Fog use the env var
-      else
-        attrs = { :use_iam_profile => true }
-      end
-    end
-    attrs
+    Hash[env_attrs.map { |attr| [attr, public_send(attr)] }].reject { |k, v| v.nil? }
   end
 
   def reset_cache!
     services.each { |service| instance_variable_set(:"@#{service}", nil) }
   end
 
-  service :s3, Fog::Storage::AWS
-  service :compute, Fog::Compute::AWS
-  service :auto_scaling, Fog::AWS::AutoScaling
-  env_attr :aws_access_key_id, :aws_secret_access_key
+  service :sts, Aws::STS::Client
+  service :s3, Aws::S3::Client
+  service :compute, Aws::EC2::Client
+  service :auto_scaling, Aws::AutoScaling::Client
+  env_attr :credentials, :stub_responses
 end
