@@ -65,7 +65,7 @@ class Aerosol::Deploy
     return if assume_role.nil?
     Aws.config.update(
       credentials: Aws::AssumeRoleCredentials.new(
-        role_name: assume_role, role_session_name: 'aerosol'
+        role_arn: assume_role, role_session_name: 'aerosol'
       )
     )
   end
