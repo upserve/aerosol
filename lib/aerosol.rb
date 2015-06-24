@@ -1,6 +1,7 @@
 require 'yaml'
 require 'aws-sdk'
 require 'dockly/util'
+require 'base64'
 
 Aws.config.update({ region: 'us-east-1' }) if Aws.config[:region].nil?
 
