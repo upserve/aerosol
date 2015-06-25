@@ -105,7 +105,7 @@ class Aerosol::Deploy
     ssh_commands = []
 
     with_prefix("[#{name}]") do |logger|
-      logger.info "found group: #{group.aws_identifier}"
+      logger.info "found group: #{group.auto_scaling_group_name}"
       instances = group.all_instances
       raise "Could not find any instances for auto scaling group #{group.namespaced_name}" if instances.empty?
       instances.each do |instance|
