@@ -278,15 +278,15 @@ class Aerosol::Runner
 private
 
   def stop_one_app(instance)
-    debug "attempting to stop app on: #{instance.public_hostname}"
+    debug "attempting to stop app on: #{instance.address}"
     ssh.with_connection(instance) do |session|
       session.exec!(stop_command)
       session.loop
     end
-    info "successfully stopped app on: #{instance.public_hostname}"
+    info "successfully stopped app on: #{instance.address}"
     true
   rescue => ex
-    warn "stop app failed on #{instance.public_hostname} due to: #{ex}"
+    warn "stop app failed on #{instance.address} due to: #{ex}"
     false
   end
 

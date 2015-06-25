@@ -79,12 +79,12 @@ describe Aerosol::Deploy do
 
   describe '#generate_ssh_command' do
     let(:ssh_ref) { double(:ssh_ref) }
-    let(:instance) { double(:instance) }
+    let(:instance) { Aerosol::Instance.new }
     let(:ssh_command) { subject.generate_ssh_command(instance) }
 
     before do
-      instance.stub(:public_hostname).and_return('hostname.com')
-      subject.stub(:local_ssh_ref).and_return(ssh_ref)
+      allow(instance).to receive(:public_hostname).and_return('hostname.com')
+      allow(subject).to receive(:local_ssh_ref).and_return(ssh_ref)
     end
 
     context 'with a user' do

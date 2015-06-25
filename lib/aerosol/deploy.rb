@@ -95,7 +95,7 @@ class Aerosol::Deploy
       end
       ssh_command << "#{local_ssh_ref.user}@" unless local_ssh_ref.user.nil?
     end
-    ssh_command << "#{instance.public_hostname || instance.private_ip_address}"
+    ssh_command << "#{instance.address}"
   end
 
   def generate_ssh_commands
@@ -109,7 +109,7 @@ class Aerosol::Deploy
       instances = group.all_instances
       raise "Could not find any instances for auto scaling group #{group.namespaced_name}" if instances.empty?
       instances.each do |instance|
-        logger.info "printing ssh command for #{instance.public_hostname  || instance.private_ip_address}"
+        logger.info "printing ssh command for #{instance.address}"
         ssh_commands << generate_ssh_command(instance)
       end
     end
