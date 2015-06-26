@@ -23,7 +23,7 @@ class Aerosol::Instance
   end
 
   def address
-    if public_hostname.nil? || public_hostname.empty?
+    if public_hostname.blank?
       private_ip_address
     else
       public_hostname
