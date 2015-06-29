@@ -22,6 +22,14 @@ class Aerosol::Instance
     description[:private_ip_address]
   end
 
+  def address
+    if public_hostname.blank?
+      private_ip_address
+    else
+      public_hostname
+    end
+  end
+
   def image_id
     description[:image_id]
   end

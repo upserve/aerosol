@@ -98,7 +98,7 @@ private
       key_name: key_name,
       security_groups: security_groups,
       spot_price: spot_price,
-      user_data: Aerosol::Util.strip_heredoc(user_data || ''),
+      user_data: Base64.encode64(Aerosol::Util.strip_heredoc(user_data || '')),
       associate_public_ip_address: associate_public_ip_address
     }.reject { |k, v| v.nil? }
   end

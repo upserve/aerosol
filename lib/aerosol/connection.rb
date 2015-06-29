@@ -11,7 +11,7 @@ class Aerosol::Connection
   def with_connection(overridden_host=nil, &block)
     actual_host = overridden_host || host
     unless actual_host.is_a?(String)
-      actual_host = (actual_host.public_hostname || actual_host.private_ip_address)
+      actual_host = actual_host.address
     end
 
     if jump

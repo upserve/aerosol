@@ -416,7 +416,7 @@ describe Aerosol::Runner do
 
   describe '#ssh_fork', :local do
     let(:ssh) { Aerosol::Connection.new(user: `whoami`.strip, host: 'www.doesntusethis.com') }
-    let(:instance) { double(Aerosol::Instance, instance_id: '1', public_hostname: 'localhost') }
+    let(:instance) { double(Aerosol::Instance, instance_id: '1', address: 'localhost') }
     let(:ssh_fork) {
       subject.ssh_fork(command, ssh, instance)
     }
