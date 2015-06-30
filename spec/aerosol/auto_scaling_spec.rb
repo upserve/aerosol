@@ -116,7 +116,8 @@ describe Aerosol::AutoScaling do
   end
 
   describe '#destroy!' do
-    subject { Aerosol::AutoScaling.new }
+    let(:launch_configuration) { Aerosol::LaunchConfiguration.new!(name: 'test-lc') }
+    subject { Aerosol::AutoScaling.new!(launch_configuration: launch_configuration.name) }
 
     context 'when there is no such auto-scaling group' do
       it 'raises an error' do
@@ -132,6 +133,7 @@ describe Aerosol::AutoScaling do
     context 'when the auto-scaling group exists' do
       it 'deletes the auto-scaling group' do
         Aerosol::AWS.auto_scaling.stub_responses(:delete_auto_scaling_group, {})
+        expect(subject.launch_configuration).to receive(:destroy)
         expect { subject.destroy! }.to_not raise_error
       end
     end
