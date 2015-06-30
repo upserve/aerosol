@@ -68,7 +68,7 @@ class Aerosol::AutoScaling
   end
 
   def deleting?
-    asgs = conn.describe_auto_scaling_groups(auto_scaling_group_names: auto_scaling_group_name).auto_scaling_groups
+    asgs = conn.describe_auto_scaling_groups(auto_scaling_group_names: [auto_scaling_group_name]).auto_scaling_groups
 
     return true if asgs.empty?
 
