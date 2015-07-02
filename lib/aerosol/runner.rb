@@ -106,13 +106,18 @@ class Aerosol::Runner
     ssh.with_connection(instance) do |session|
       start_tailing_logs(ssh, instance) if log_pids[instance.instance_id].nil?
       debug "checking if #{instance.instance_id} is healthy"
-      success = if is_alive?.nil?
-        debug 'Using default site live check'
-        check_site_live(session)
-      else
-        debug 'Using custom site live check'
-        is_alive?.call(session, self)
-      end
+      success =
+        case is_alive?
+        when Proc
+          debug 'Using custom site live check'
+          is_alive?.call(session, self)
+        when String
+          debug "Using custom site live check: #{is_alive?}"
+          check_live_with(session, is_alive?)
+        else
+          debug 'Using default site live check'
+          check_site_live(session)
+        end
     end
 
     if success
@@ -136,7 +141,10 @@ class Aerosol::Runner
       '-O',
       '/dev/null'
     ].compact.join(' ')
+    check_live_with(session, command)
+  end
 
+  def check_live_with(session, command)
     debug "running #{command}"
     ret = ssh_exec!(session, command)
     debug "finished running #{command}"

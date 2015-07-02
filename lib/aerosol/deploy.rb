@@ -36,8 +36,10 @@ class Aerosol::Deploy
     @live_check
   end
 
-  def is_alive?(&block)
-    @is_alive = block unless block.nil?
+  def is_alive?(command = nil, &block)
+    fail 'Command and block specified' if command && block
+    @is_alive = block if block
+    @is_alive = command if command
     @is_alive
   end
 

@@ -180,7 +180,24 @@ describe Aerosol::Deploy do
       end
     end
 
-    context 'when an argument is given' do
+    context 'when a command and block are given' do
+      it 'fails' do
+        expect { subject.is_alive?('true', &check) }.to raise_error
+      end
+    end
+
+    context 'when a command is given' do
+      let(:command) { 'bash -lc "[[ -e /tmp/up ]]"' }
+
+      it 'sets is_alive? to that value' do
+        expect { subject.is_alive?(command) }
+          .to change { subject.is_alive? }
+          .from(nil)
+          .to(command)
+      end
+    end
+
+    context 'when a block is given' do
       it 'sets is_alive? to that value' do
         expect { subject.is_alive?(&check) }
           .to change { subject.is_alive? }
