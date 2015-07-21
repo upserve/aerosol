@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/blank'
+
 class Aerosol::Instance
   include Aerosol::AWSModel
 
