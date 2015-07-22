@@ -33,12 +33,25 @@ class Aerosol::Instance
     @description ||= describe!
   end
 
-  def self.request_all
+  def self.request_all_for_token(next_token)
+    options = next_token.nil? ? {} : { 'NextToken' => next_token }
     Aerosol::AWS.auto_scaling
-                .describe_auto_scaling_instances
+                .describe_auto_scaling_instances(options)
                 .body
                 .[]('DescribeAutoScalingInstancesResult')
-                .[]('AutoScalingInstances')
+  end
+
+  def self.request_all
+    next_token = nil
+    instances = []
+
+    begin
+      new_instances = request_all_for_token(next_token)
+      instances.concat(new_instances['AutoScalingInstances'])
+      next_token = new_instances['NextToken']
+    end while !next_token.nil?
+
+    instances
   end
 
 private
