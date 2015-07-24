@@ -394,4 +394,34 @@ describe Aerosol::LaunchConfiguration do
       end
     end
   end
+
+  describe '#corrected_user_data' do
+    let(:encoded_user_data_string) { Base64.encode64('test') }
+
+    context 'when the user_data is a String' do
+      subject do
+        described_class.new do
+          name :corrected_user_data
+          user_data 'test'
+        end
+      end
+
+      it 'correctly encodes to base64' do
+        expect(subject.corrected_user_data).to eq(encoded_user_data_string)
+      end
+    end
+
+    context 'when the user_data is a Proc' do
+      subject do
+        described_class.new do
+          name :corrected_user_data_2
+          user_data { 'test' }
+        end
+      end
+
+      it 'correctly encodes to base64' do
+        expect(subject.corrected_user_data).to eq(encoded_user_data_string)
+      end
+    end
+  end
 end
