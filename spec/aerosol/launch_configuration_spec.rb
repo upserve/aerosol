@@ -424,4 +424,17 @@ describe Aerosol::LaunchConfiguration do
       end
     end
   end
+
+  describe '#meta_data' do
+    subject do
+      described_class.new do
+        name :my_launch_config
+        meta_data('Test' => '1')
+      end
+    end
+
+    it 'returns the hash' do
+      expect(subject.meta_data['Test']).to eq('1')
+    end
+  end
 end
