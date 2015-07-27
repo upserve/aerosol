@@ -22,7 +22,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'grit'
   gem.add_dependency 'net-ssh'
   gem.add_dependency 'net-ssh-gateway'
-  gem.add_dependency 'dockly-util', '~> 0.0.5'
+  gem.add_dependency 'dockly-util', '~> 0.1.0'
   gem.add_development_dependency 'cane'
   gem.add_development_dependency 'pry'
   gem.add_development_dependency 'rake'
