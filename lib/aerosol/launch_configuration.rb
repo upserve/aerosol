@@ -6,9 +6,11 @@ class Aerosol::LaunchConfiguration
   aws_attribute :launch_configuration_name, :image_id, :instance_type, :security_groups, :user_data,
                 :iam_instance_profile, :kernel_id, :key_name, :spot_price, :created_time,
                 :associate_public_ip_address
+  dsl_attribute :meta_data
 
   primary_key :launch_configuration_name
   default_value(:security_groups) { [] }
+  default_value(:meta_data) { {} }
 
   def launch_configuration_name(arg = nil)
     if arg
@@ -90,6 +92,12 @@ class Aerosol::LaunchConfiguration
 }}
   end
 
+  def corrected_user_data
+    realized_user_data = user_data.is_a?(Proc) ? user_data.call : user_data
+
+    Base64.encode64(Aerosol::Util.strip_heredoc(realized_user_data || ''))
+  end
+
 private
   def create_options
     { # TODO Add dsl so that 'BlockDeviceMappings' may be specified
@@ -98,7 +106,7 @@ private
       key_name: key_name,
       security_groups: security_groups,
       spot_price: spot_price,
-      user_data: Base64.encode64(Aerosol::Util.strip_heredoc(user_data || '')),
+      user_data: corrected_user_data,
       associate_public_ip_address: associate_public_ip_address
     }.reject { |k, v| v.nil? }
   end
