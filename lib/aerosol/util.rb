@@ -1,4 +1,4 @@
-require 'grit'
+require 'rugged'
 
 module Aerosol::Util
   extend self
@@ -32,10 +32,10 @@ module Aerosol::Util
   end
 
   def git_repo
-    @git_repo ||= Grit::Repo.new('.')
+    @git_repo ||= Rugged::Repository.new('.')
   end
 
   def git_sha
-    @git_sha ||= git_repo.git.show.lines.first.chomp.match(/^commit ([a-f0-9]+)$/)[1][0..6] rescue 'unknown'
+    @git_sha ||= git_repo.last_commit.oid[0..6] rescue 'unknown'
   end
 end
