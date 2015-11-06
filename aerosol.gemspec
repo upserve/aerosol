@@ -19,7 +19,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'clamp', '~> 0.6'
   gem.add_dependency 'excon'
   gem.add_dependency 'aws-sdk', '~> 2.0'
-  gem.add_dependency 'grit'
+  gem.add_dependency 'minigit', '~> 0.0.4'
   gem.add_dependency 'net-ssh'
   gem.add_dependency 'net-ssh-gateway'
   gem.add_dependency 'dockly-util', '~> 0.1.0'
