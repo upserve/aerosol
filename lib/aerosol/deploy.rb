@@ -67,13 +67,11 @@ class Aerosol::Deploy
     return if assume_role.nil?
     Aws.config.update(
       credentials: Aws::AssumeRoleCredentials.new(
-        role_arn: assume_role, role_session_name: 'aerosol'
+        role_arn: assume_role,
+        role_session_name: "aerosol-#{name}",
+        client: Aerosol::AWS.sts
       )
     )
-  end
-
-  def sts
-    Aerosol::AWS.sts
   end
 
   def run_post_deploy
