@@ -51,8 +51,18 @@ namespace :aerosol do
 
   namespace :env do
     Aerosol.envs.values.each do |env|
-      desc "Run all of the deploys for #{env.name} in parallel"
-      multitask env.name => env.deploy.map { |dep| "aerosol:#{dep.name}:all" }
+      namespace env.name do
+        desc "Assumes a role if necessary for #{env.name}"
+        task :assume_role => 'aerosol:load' do |name|
+          Thread.current[:rake_task] = name
+          env.perform_role_assumption
+        end
+
+        desc "Run all of the deploys for #{env.name} in parallel"
+        multitask :run => env.deploy.map { |dep| "aerosol:#{dep.name}:all" }
+      end
+
+      task env.name => ["aerosol:env:#{env.name}:assume_role", "aerosol:env:#{env.name}:run"]
     end
   end
 
