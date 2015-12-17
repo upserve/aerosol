@@ -26,7 +26,8 @@ describe Aerosol::Instance do
               lifecycle_state: 'InService',
               health_status: 'GOOD',
               launch_configuration_name: launch_configuration.launch_configuration_name.to_s,
-              auto_scaling_group_name: "test-#{i}"
+              auto_scaling_group_name: "test-#{i}",
+              protected_from_scale_in: false
             }
           end
         })
@@ -49,7 +50,8 @@ describe Aerosol::Instance do
             lifecycle_state: 'InService',
             health_status: 'GOOD',
             launch_configuration_name: launch_configuration.launch_configuration_name.to_s,
-            auto_scaling_group_name: 'test'
+            auto_scaling_group_name: 'test',
+            protected_from_scale_in: false
           }
         ]
       })
