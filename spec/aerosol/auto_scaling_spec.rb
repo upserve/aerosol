@@ -485,25 +485,29 @@ describe Aerosol::AutoScaling do
           availability_zone: 'us-east-1a',
           lifecycle_state: 'InService',
           health_status: 'GOOD',
-          launch_configuration_name: launch_configuration.name.to_s
+          launch_configuration_name: launch_configuration.name.to_s,
+          protected_from_scale_in: false
         }, {
           instance_id: 'i-1239014',
           availability_zone: 'us-east-1a',
           lifecycle_state: 'InService',
           health_status: 'GOOD',
-          launch_configuration_name: launch_configuration.name.to_s
+          launch_configuration_name: launch_configuration.name.to_s,
+          protected_from_scale_in: false
         }, {
           instance_id: 'i-1239015',
           availability_zone: 'us-east-1a',
           lifecycle_state: 'InService',
           health_status: 'GOOD',
-          launch_configuration_name: launch_configuration.name.to_s
+          launch_configuration_name: launch_configuration.name.to_s,
+          protected_from_scale_in: false
         }, {
           instance_id: 'i-1239016',
           availability_zone: 'us-east-1a',
           lifecycle_state: 'InService',
           health_status: 'GOOD',
-          launch_configuration_name: launch_configuration.name.to_s
+          launch_configuration_name: launch_configuration.name.to_s,
+          protected_from_scale_in: false
         }]
       }]
     }
