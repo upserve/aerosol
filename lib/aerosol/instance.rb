@@ -25,7 +25,7 @@ class Aerosol::Instance
   end
 
   def address
-    if launch_configuration.always_use_private_address || public_hostname.blank?
+    if launch_configuration.try(:always_use_private_address) || public_hostname.blank?
       private_ip_address
     else
       public_hostname
