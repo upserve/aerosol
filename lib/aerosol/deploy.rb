@@ -99,6 +99,7 @@ class Aerosol::Deploy
   end
 
   def generate_ssh_commands
+    Aerosol::LaunchConfiguration.all # load all of the launch configurations first
     group = Aerosol::AutoScaling.latest_for_tag('Deploy', auto_scaling.namespaced_name)
     raise "Could not find any auto scaling groups for this deploy (#{name})." if group.nil?
 
