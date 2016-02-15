@@ -186,8 +186,7 @@ describe Aerosol::Runner do
             launch_configuration_name: "launch_config-#{i+1}",
             availability_zone: 'us-east-1a',
             lifecycle_state: 'InService',
-            health_status: 'Healthy',
-            protected_from_scale_in: false
+            health_status: 'Healthy'
           }
         end,
         next_token: nil
@@ -525,8 +524,7 @@ describe Aerosol::Runner do
             auto_scaling_group_name: 'stop_app_launch_config-123456',
             availability_zone: 'us-east-1a',
             lifecycle_state: 'InService',
-            health_status: 'Running',
-            protected_from_scale_in: false
+            health_status: 'Running'
           }
         end
       })

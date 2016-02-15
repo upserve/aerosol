@@ -113,8 +113,7 @@ describe Aerosol::Deploy do
 
   describe '#generate_ssh_command' do
     let(:ssh_ref) { double(:ssh_ref) }
-    let(:launch_configuration) { Aerosol::LaunchConfiguration.new!(name: :test_lc) }
-    let(:instance) { Aerosol::Instance.new(launch_configuration: launch_configuration.name) }
+    let(:instance) { Aerosol::Instance.new }
     let(:ssh_command) { subject.generate_ssh_command(instance) }
 
     before do
