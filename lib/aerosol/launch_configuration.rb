@@ -5,13 +5,12 @@ class Aerosol::LaunchConfiguration
   logger_prefix '[aerosol launch_configuration]'
   aws_attribute :launch_configuration_name, :image_id, :instance_type, :security_groups, :user_data,
                 :iam_instance_profile, :kernel_id, :key_name, :spot_price, :created_time,
-                :associate_public_ip_address, :always_use_private_address, :block_device_mappings
+                :associate_public_ip_address, :block_device_mappings
   dsl_attribute :meta_data
 
   primary_key :launch_configuration_name
   default_value(:security_groups) { [] }
   default_value(:meta_data) { {} }
-  default_value(:always_use_private_address) { false }
 
   def launch_configuration_name(arg = nil)
     if arg

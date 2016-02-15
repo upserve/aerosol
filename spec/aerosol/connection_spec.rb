@@ -40,8 +40,7 @@ describe Aerosol::Connection do
 
       context 'when the host is an instance' do
         let(:public_hostname) { nil }
-        let(:launch_configuration) { Aerosol::LaunchConfiguration.new!(name: :test_lc) }
-        let(:host) { Aerosol::Instance.new(launch_configuration: launch_configuration.name) }
+        let(:host) { Aerosol::Instance.new }
         subject do
           Aerosol::Connection.new.tap do |inst|
             inst.name :connection_for_tim_horton
@@ -73,8 +72,7 @@ describe Aerosol::Connection do
 
       context 'when the host is passed into with_connection' do
         let(:public_hostname) { nil }
-        let(:launch_configuration) { Aerosol::LaunchConfiguration.new!(name: :test_lc) }
-        let(:host) { Aerosol::Instance.new(launch_configuration: launch_configuration.name) }
+        let(:host) { Aerosol::Instance.new }
         subject do
           Aerosol::Connection.new.tap do |inst|
             inst.name :connection_for_tim_horton
