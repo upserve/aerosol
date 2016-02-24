@@ -1,6 +1,5 @@
 require 'socket'
 require 'active_record'
-require 'grit'
 require 'timeout'
 
 class Aerosol::Runner

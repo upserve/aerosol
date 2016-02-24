@@ -1,4 +1,4 @@
-require 'grit'
+require 'minigit'
 
 module Aerosol::Util
   extend self
@@ -32,10 +32,10 @@ module Aerosol::Util
   end
 
   def git_repo
-    @git_repo ||= Grit::Repo.new('.')
+    @git_repo ||= MiniGit.new('.')
   end
 
   def git_sha
-    @git_sha ||= git_repo.git.show.lines.first.chomp.match(/^commit ([a-f0-9]+)$/)[1][0..6] rescue 'unknown'
+    @git_sha ||= git_repo.capturing.rev_parse('HEAD').chomp[0..6] rescue 'unknown'
   end
 end
