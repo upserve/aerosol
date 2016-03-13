@@ -14,6 +14,20 @@ class Aerosol::AbstractCommand < Clamp::Command
   end
 end
 
+class Aerosol::DeployCommand < Aerosol::AbstractCommand
+  parameter 'DEPLOY', 'the deploy to run (can also be an environment name) for', :attribute_name => :deploy_name
+
+  def execute
+    super
+
+    if Aerosol.deploy(deploy_name.to_sym)
+      Rake::Task["aerosol:#{deploy_name}:all"].invoke
+    elsif Aerosol.env(deploy_name.to_sym)
+      Rake::Task["aerosol:env:#{deploy_name}"].invoke
+    end
+  end
+end
+
 class Aerosol::SshCommand < Aerosol::AbstractCommand
   option ['-r', '--run'], :flag, 'run first ssh command', :attribute_name => :run_first
   parameter 'DEPLOY', 'the deploy to list commands for', :attribute_name => :deploy_name
@@ -37,5 +51,6 @@ end
 
 class Aerosol::Cli < Aerosol::AbstractCommand
   subcommand ['ssh', 's'], 'Print ssh commands for latest running instances', Aerosol::SshCommand
+  subcommand ['deploy', 'd'], 'Run a deploy', Aerosol::DeployCommand
 end
 
