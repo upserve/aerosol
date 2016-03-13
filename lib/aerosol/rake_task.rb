@@ -1,8 +1,6 @@
 require 'rake'
 require 'aerosol'
 
-$rake_task_logger = Dockly::Util::Logger.new('[aerosol rake_task]', STDOUT, false)
-
 class Rake::AutoScalingTask < Rake::Task
   def needed?
     !auto_scaling.exists?
