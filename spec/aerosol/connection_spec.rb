@@ -57,14 +57,14 @@ describe Aerosol::Connection do
         context 'when the public_hostname is present' do
           let(:public_hostname) { 'example.com' }
           it 'returns the public_hostname' do
-            Net::SSH.should_receive(:start).with(public_hostname, 'tim_horton')
+            Net::SSH.should_receive(:start).with(public_hostname, 'tim_horton', timeout: 20)
             subject.with_connection
           end
         end
 
         context 'when the public_hostname is nil' do
           it 'returns the private_ip_address' do
-            Net::SSH.should_receive(:start).with('152.60.94.125', 'tim_horton')
+            Net::SSH.should_receive(:start).with('152.60.94.125', 'tim_horton', timeout: 20)
             subject.with_connection
           end
         end
@@ -88,7 +88,7 @@ describe Aerosol::Connection do
         context 'when the public_hostname is present' do
           let(:public_hostname) { 'example.com' }
           it 'returns the public_hostname' do
-            Net::SSH.should_receive(:start).with(public_hostname, 'tim_horton')
+            Net::SSH.should_receive(:start).with(public_hostname, 'tim_horton', timeout: 20)
             subject.with_connection(host)
           end
         end
@@ -96,14 +96,14 @@ describe Aerosol::Connection do
         context 'when the public_hostname is an empty string' do
           let(:public_hostname) { '' }
           it 'returns the private_ip_address' do
-            Net::SSH.should_receive(:start).with('152.60.94.125', 'tim_horton')
+            Net::SSH.should_receive(:start).with('152.60.94.125', 'tim_horton', timeout: 20)
             subject.with_connection(host)
           end
         end
 
         context 'when the public_hostname is nil' do
           it 'returns the private_ip_address' do
-            Net::SSH.should_receive(:start).with('152.60.94.125', 'tim_horton')
+            Net::SSH.should_receive(:start).with('152.60.94.125', 'tim_horton', timeout: 20)
             subject.with_connection(host)
           end
         end
