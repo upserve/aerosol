@@ -5,7 +5,7 @@ class Aerosol::AutoScaling
   logger_prefix '[aerosol auto_scaling]'
   aws_attribute :auto_scaling_group_name, :availability_zones, :min_size, :max_size, :default_cooldown,
                 :desired_capacity, :health_check_grace_period, :health_check_type, :load_balancer_names,
-                :placement_group, :tags, :created_time, :vpc_zone_identifier
+                :placement_group, :tags, :created_time, :vpc_zone_identifier, :target_group_arns
   aws_class_attribute :launch_configuration, Aerosol::LaunchConfiguration
   primary_key :auto_scaling_group_name
 
@@ -138,6 +138,7 @@ class Aerosol::AutoScaling
 "placement_group" => "#{placement_group}", \
 "tags" => #{tags.to_s}, \
 "created_time" => "#{created_time}" \
+"target_group_arns" => "#{target_group_arns}" \
 }}
   end
 
@@ -155,7 +156,8 @@ private
       load_balancer_names: load_balancer_names,
       placement_group: placement_group,
       tags: tags_to_array,
-      vpc_zone_identifier: vpc_zone_identifier
+      vpc_zone_identifier: vpc_zone_identifier,
+      target_group_arns: target_group_arns
     }.reject { |k, v| v.nil? }
   end
 
