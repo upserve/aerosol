@@ -25,7 +25,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'dockly-util', '~> 0.1.0'
   gem.add_development_dependency 'cane'
   gem.add_development_dependency 'pry'
-  gem.add_development_dependency 'rake'
+  gem.add_development_dependency 'rake', '~> 10.0'
   gem.add_development_dependency 'rspec', '< 3.0'
   gem.add_development_dependency 'webmock'
   gem.add_development_dependency 'vcr'
