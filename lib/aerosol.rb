@@ -1,5 +1,8 @@
 require 'yaml'
-require 'aws-sdk'
+require 'aws-sdk-autoscaling'
+require 'aws-sdk-core'
+require 'aws-sdk-s3'
+require 'aws-sdk-ec2'
 require 'dockly/util'
 require 'base64'
 
