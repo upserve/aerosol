@@ -13,6 +13,7 @@ module Aerosol
   require 'aerosol/util'
   require 'aerosol/aws_model'
   require 'aerosol/launch_configuration'
+  require 'aerosol/launch_template'
   require 'aerosol/auto_scaling'
   require 'aerosol/instance'
   require 'aerosol/connection'
@@ -61,6 +62,7 @@ module Aerosol
       :auto_scalings => Aerosol::AutoScaling.instances,
       :deploys => Aerosol::Deploy.instances,
       :launch_configurations => Aerosol::LaunchConfiguration.instances,
+      :launch_templates => Aerosol::LaunchTemplate.instances,
       :sshs => Aerosol::Connection.instances,
       :envs => Aerosol::Env.instances
     }
@@ -70,6 +72,7 @@ module Aerosol
     :auto_scaling => Aerosol::AutoScaling,
     :deploy => Aerosol::Deploy,
     :launch_configuration => Aerosol::LaunchConfiguration,
+    :launch_template => Aerosol::LaunchTemplate,
     :ssh => Aerosol::Connection,
     :env => Aerosol::Env
   }.each do |method, klass|
@@ -82,15 +85,15 @@ module Aerosol
     end
   end
 
-  [:auto_scalings, :deploys, :launch_configurations, :sshs, :envs].each do |method|
+  [:auto_scalings, :deploys, :launch_configurations, :launch_templates, :sshs, :envs].each do |method|
     define_method(method) do
       inst[method]
     end
   end
 
   module_function :inst, :load_inst, :setup, :load_file, :load_file=,
-                  :auto_scaling,  :launch_configuration,  :deploy,  :ssh, :git_sha,
-                  :auto_scalings, :launch_configurations, :deploys, :sshs,
+                  :auto_scaling,  :launch_configuration, :launch_template,  :deploy,  :ssh, :git_sha,
+                  :auto_scalings, :launch_configurations, :launch_templates, :deploys, :sshs,
                   :namespace, :env, :envs, :region
 end
 

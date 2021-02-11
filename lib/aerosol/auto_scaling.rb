@@ -7,6 +7,7 @@ class Aerosol::AutoScaling
                 :desired_capacity, :health_check_grace_period, :health_check_type, :load_balancer_names,
                 :placement_group, :tags, :created_time, :vpc_zone_identifier, :target_group_arns
   aws_class_attribute :launch_configuration, Aerosol::LaunchConfiguration
+  aws_class_attribute :launch_template, Aerosol::LaunchTemplate
   primary_key :auto_scaling_group_name
 
   def initialize(options={}, &block)
@@ -38,21 +39,30 @@ class Aerosol::AutoScaling
   end
 
   def create!
-    ensure_present! :launch_configuration, :max_size, :min_size
+    ensure_present! :max_size, :min_size
     raise 'availability_zones or vpc_zone_identifier must be set' if [availability_zones, vpc_zone_identifier].none?
+    raise 'launch_configuration or launch_template must be set' if [launch_configuration, launch_template].none?
 
     info "creating auto scaling group"
-    launch_configuration.create
+    launch_details = create_launch_details
+
     info self.inspect
 
     conn.create_auto_scaling_group({
       auto_scaling_group_name: auto_scaling_group_name,
       availability_zones: [*availability_zones],
-      launch_configuration_name: launch_configuration.launch_configuration_name,
       max_size: max_size,
       min_size: min_size
-    }.merge(create_options))
-    sleep 10
+    }
+      .merge(create_options)
+      .merge(launch_details)
+    )
+
+    conn.wait_until(:group_in_service, auto_scaling_group_names: [auto_scaling_group_name]) do |waiter|
+      waiter.before_wait do |attempt_count, _response|
+        info "Wait count #{attempt_count} of #{waiter.max_attempts} for #{auto_scaling_group_name} to be in service"
+      end
+    end
   end
 
   def destroy!
@@ -145,6 +155,22 @@ class Aerosol::AutoScaling
 private
   def conn
     Aerosol::AWS.auto_scaling
+  end
+
+  def create_launch_details
+    if launch_configuration
+      launch_configuration.create
+      { launch_configuration_name: launch_configuration.launch_configuration_name }
+    elsif launch_template
+      launch_template.create
+      {
+        launch_template:
+        {
+          launch_template_name: launch_template.launch_template_name,
+          version: '$Latest'
+        }
+      }
+    end
   end
 
   def create_options
