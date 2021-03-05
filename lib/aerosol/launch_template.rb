@@ -60,7 +60,7 @@ class Aerosol::LaunchTemplate
   def all_instances
     Aerosol::Instance.all.select { |instance|
       !instance.launch_template.nil? &&
-        (instance.launch_template.launch_template == launch_template_name)
+        (instance.launch_template == launch_template_name)
     }.each(&:description)
   end
 

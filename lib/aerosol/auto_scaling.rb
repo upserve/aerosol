@@ -41,7 +41,7 @@ class Aerosol::AutoScaling
   def create!
     ensure_present! :max_size, :min_size
     raise 'availability_zones or vpc_zone_identifier must be set' if [availability_zones, vpc_zone_identifier].none?
-    raise 'launch_configuration or launch_template must be set' if [launch_configuration, launch_template].none?
+    raise 'launch_configuration or launch_template must be set' unless launch_details
 
     info "creating auto scaling group"
     launch_details = create_launch_details
@@ -70,9 +70,9 @@ class Aerosol::AutoScaling
     conn.delete_auto_scaling_group(auto_scaling_group_name: auto_scaling_group_name, force_delete: true)
     begin
       (0..2).each { break if deleting?; sleep 1 }
-      launch_configuration.destroy
+      launch_details.destroy
     rescue => ex
-      info "Launch Config: #{launch_configuration} for #{auto_scaling_group_name} was not deleted."
+      info "Launch Details: #{launch_details} for #{auto_scaling_group_name} were not deleted."
       info ex.message
     end
   end
@@ -89,6 +89,10 @@ class Aerosol::AutoScaling
     conn.describe_auto_scaling_groups(auto_scaling_group_names: [*auto_scaling_group_name])
         .auto_scaling_groups.first
         .instances.map { |instance| Aerosol::Instance.from_hash(instance) }
+  end
+
+  def launch_details
+    launch_configuration || launch_template
   end
 
   def tag(val)
