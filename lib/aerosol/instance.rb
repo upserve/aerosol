@@ -59,6 +59,12 @@ class Aerosol::Instance
     instances
   end
 
+  def self.from_hash(hash)
+    instance = super(hash)
+    instance['launch_template'] = (hash[:launch_template][:launch_template_name]) if hash[:launch_template]
+    instance
+  end
+
 private
   def describe!
     ensure_present! :instance_id

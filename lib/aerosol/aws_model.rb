@@ -5,7 +5,6 @@ module Aerosol::AWSModel
       extend ClassMethods
 
       attr_accessor :from_aws
-      attr_accessor :launch_template
     end
   end
 
@@ -77,7 +76,6 @@ module Aerosol::AWSModel
 
       instance = new!
       instance.from_aws = true
-      instance.launch_template = hash[:launch_template][:launch_template_name] if hash[:launch_template]
 
       aws_attributes.each { |attr| instance.send(attr, hash[attr]) unless hash[attr].nil? }
       refs.each { |name, inst| instance.send(name, inst.name) }
