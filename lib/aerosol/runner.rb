@@ -229,7 +229,7 @@ class Aerosol::Runner
 
   def old_instances
     require_deploy!
-    old_auto_scaling_groups.map(&:launch_configuration).compact.map(&:all_instances).flatten.compact
+    old_auto_scaling_groups.map(&:launch_details).compact.map(&:all_instances).flatten.compact
   end
 
   def old_auto_scaling_groups
@@ -243,6 +243,7 @@ class Aerosol::Runner
   def select_auto_scaling_groups(&block)
     require_deploy!
     Aerosol::LaunchConfiguration.all # load all of the launch configurations first
+    Aerosol::LaunchTemplate.all
     Aerosol::AutoScaling.all.select { |asg|
       (asg.tags['Deploy'].to_s == auto_scaling.tags['Deploy']) &&
         (block.nil? ? true : block.call(asg))
@@ -251,11 +252,13 @@ class Aerosol::Runner
 
   def new_instances
     require_deploy!
-    while launch_configuration.all_instances.length < auto_scaling.min_size
+
+    while launch_details.all_instances.length < auto_scaling.min_size
       info "Waiting for instances to come up"
       sleep 10
     end
-    launch_configuration.all_instances
+
+    launch_details.all_instances
   end
 
   def with_deploy(name)
@@ -280,7 +283,7 @@ class Aerosol::Runner
            :live_check, :db_config_path, :instance_live_grace_period,
            :app_port, :continue_if_stop_app_fails, :stop_app_retries,
            :is_alive?, :log_files, :tail_logs, :to => :deploy
-  delegate :launch_configuration, :to => :auto_scaling
+  delegate :launch_details, :to => :auto_scaling
 
 private
 

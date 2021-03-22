@@ -5,6 +5,7 @@ class Aerosol::Instance
 
   aws_attribute :availability_zone, :health_status, :instance_id, :lifecycle_state
   aws_class_attribute :launch_configuration, Aerosol::LaunchConfiguration
+  aws_class_attribute :launch_template, Aerosol::LaunchTemplate
   primary_key :instance_id
 
   def live?
@@ -56,6 +57,12 @@ class Aerosol::Instance
     end until next_token.nil?
 
     instances
+  end
+
+  def self.from_hash(hash)
+    instance = super(hash)
+    instance['launch_template'] = (hash[:launch_template][:launch_template_name]) if hash[:launch_template]
+    instance
   end
 
 private

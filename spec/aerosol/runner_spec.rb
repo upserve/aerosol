@@ -253,6 +253,57 @@ describe Aerosol::Runner do
   end
 
   describe '#new_instances' do
+    context 'With a launch template' do
+      let!(:lt) do
+        Aerosol::LaunchTemplate.new! do
+          name :lt
+          image_id 'fake-ami-how-scandalous'
+          instance_type 'm1.large'
+        end
+      end
+      let!(:asg_lt) do
+        Aerosol::AutoScaling.new! do
+          name :asg_lt
+          availability_zones 'us-east-1'
+          min_size 0
+          max_size 3
+          launch_template :lt
+          stub(:sleep)
+        end
+      end
+      let!(:instance1) do
+        Aerosol::Instance.from_hash(
+          {
+            instance_id: 'z0',
+            launch_template: { launch_template_name: lt.launch_template_name }
+          }
+        )
+      end
+      let!(:instance2) do
+        double(
+          :launch_template => double(:launch_template_name => 'lc7-8891022'),
+          :launch_configuration => nil
+        )
+      end
+      let!(:instance3) do
+        double(
+          :launch_template => nil,
+          :launch_configuration => double(:launch_configuration_name => 'lc0-8891022')
+        )
+      end
+
+      before do
+        Aerosol::Instance.stub(:all).and_return([instance1, instance2, instance3])
+      end
+
+      it 'returns each instance that is a member of the current launch template' do
+        deploy = Aerosol::Deploy.new!(name: :lt_deploy, auto_scaling: :asg_lt)
+        subject.with_deploy(:lt_deploy) do
+          subject.new_instances.should == [instance1]
+        end
+      end
+    end
+
     let!(:lc7) do
       Aerosol::LaunchConfiguration.new! do
         name :lc7
