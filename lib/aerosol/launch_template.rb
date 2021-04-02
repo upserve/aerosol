@@ -14,7 +14,6 @@ class Aerosol::LaunchTemplate
 
   def launch_template_name(arg = nil)
     if arg
-      raise "You cannot set the launch_template_name directly" unless from_aws
       @launch_template_name = arg
     else
       @launch_template_name || default_identifier
@@ -60,7 +59,7 @@ class Aerosol::LaunchTemplate
   def all_instances
     Aerosol::Instance.all.select { |instance|
       !instance.launch_template.nil? &&
-        (instance.launch_template == launch_template_name)
+        (instance.launch_template.launch_template_name == launch_template_name)
     }.each(&:description)
   end
 

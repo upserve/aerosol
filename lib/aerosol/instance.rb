@@ -61,7 +61,10 @@ class Aerosol::Instance
 
   def self.from_hash(hash)
     instance = super(hash)
-    instance['launch_template'] = (hash[:launch_template][:launch_template_name]) if hash[:launch_template]
+    if hash[:launch_template]
+      instance['launch_template'] = Aerosol::LaunchTemplate.new
+      instance['launch_template'].launch_template_name(hash[:launch_template][:launch_template_name])
+    end
     instance
   end
 
