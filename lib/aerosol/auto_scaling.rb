@@ -7,7 +7,12 @@ class Aerosol::AutoScaling
                 :desired_capacity, :health_check_grace_period, :health_check_type, :load_balancer_names,
                 :placement_group, :tags, :created_time, :vpc_zone_identifier, :target_group_arns
   aws_class_attribute :launch_configuration, Aerosol::LaunchConfiguration
-  aws_class_attribute :launch_template, Aerosol::LaunchTemplate
+  aws_class_attribute(
+    :launch_template,
+    Aerosol::LaunchTemplate,
+    proc { |argument| argument.fetch(:launch_template, {})[:launch_template_name] }
+  )
+
   primary_key :auto_scaling_group_name
 
   def initialize(options={}, &block)
@@ -88,7 +93,7 @@ class Aerosol::AutoScaling
   def all_instances
     conn.describe_auto_scaling_groups(auto_scaling_group_names: [*auto_scaling_group_name])
         .auto_scaling_groups.first
-        .instances.map { |instance| Aerosol::Instance.from_hash(instance) }
+        .instances.map { |instance| Aerosol::Instance.from_hash(instance.to_hash) }
   end
 
   def launch_details
@@ -154,12 +159,6 @@ class Aerosol::AutoScaling
 "created_time" => "#{created_time}" \
 "target_group_arns" => "#{target_group_arns}" \
 }}
-  end
-
-  def self.from_hash(hash)
-    instance = super(hash)
-    instance['launch_template'] = (hash[:launch_template][:launch_template_name]) if hash[:launch_template]
-    instance
   end
 
 private

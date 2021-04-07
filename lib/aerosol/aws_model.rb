@@ -47,13 +47,15 @@ module Aerosol::AWSModel
       aws_attributes.merge(attrs)
     end
 
-    def aws_class_attribute(name, klass)
+    def aws_class_attribute(name, klass, primary_key_proc = nil)
       unless klass.ancestors.include?(Aerosol::AWSModel) || (klass == self)
         raise '.aws_class_attribute requires a Aerosol::AWSModel that is not the current class.'
       end
 
+      primary_key_proc ||= proc { |hash| hash[klass.primary_key] }
+
       dsl_class_attribute(name, klass)
-      aws_class_attributes.merge!({ name => klass })
+      aws_class_attributes.merge!({ name => [klass, primary_key_proc] })
     end
 
     def exists?(key)
@@ -67,9 +69,9 @@ module Aerosol::AWSModel
 
     def from_hash(hash)
       raise 'To use .from_hash, you must specify a primary_key' if primary_key.nil?
-      refs = Hash[aws_class_attributes.map do |name, klass|
+      refs = Hash[aws_class_attributes.map do |name, (klass, primary_key_proc)|
         value = klass.instances.values.find do |inst|
-          inst.send(klass.primary_key).to_s == hash[klass.primary_key].to_s unless inst.send(klass.primary_key).nil?
+          inst.send(klass.primary_key).to_s == primary_key_proc.call(hash).to_s unless inst.send(klass.primary_key).nil?
         end
         [name, value]
       end].reject { |k, v| v.nil? }
