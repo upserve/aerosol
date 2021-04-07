@@ -3,7 +3,8 @@ class Aerosol::LaunchTemplate
   include Dockly::Util::Logger::Mixin
 
   logger_prefix '[aerosol launch_template]'
-  aws_attribute :launch_template_name, :image_id, :instance_type, :security_groups, :user_data,
+  aws_attribute :launch_template_name, :launch_template_id, :latest_version_number,
+                :image_id, :instance_type, :security_groups, :user_data,
                 :iam_instance_profile, :kernel_id, :key_name, :spot_price, :created_time,
                 :network_interfaces, :block_device_mappings, :ebs_optimized
   dsl_attribute :meta_data
@@ -19,15 +20,6 @@ class Aerosol::LaunchTemplate
     else
       @launch_template_name || default_identifier
     end
-  end
-
-  def exists?
-    info "launch_template: needed?: #{launch_template_name}: " +
-         "checking for launch template: #{launch_template_name}"
-    exists = super
-    info "launch template: needed?: #{launch_template_name}: " +
-         "#{exists ? 'found' : 'did not find'} launch template: #{launch_template_name}"
-    exists
   end
 
   def security_group(group)
@@ -48,6 +40,7 @@ class Aerosol::LaunchTemplate
         },
       }.merge(create_options)
     )
+
     info self.inspect
   end
 
@@ -60,7 +53,7 @@ class Aerosol::LaunchTemplate
   def all_instances
     Aerosol::Instance.all.select { |instance|
       !instance.launch_template.nil? &&
-        (instance.launch_template == launch_template_name)
+        (instance.launch_template.launch_template_name == launch_template_name)
     }.each(&:description)
   end
 
@@ -78,13 +71,14 @@ class Aerosol::LaunchTemplate
       lts.concat(new_lts.launch_templates)
       next_token = new_lts.next_token
     end until next_token.nil?
-
     lts
   end
 
   def to_s
     %{Aerosol::LaunchTemplate { \
 "launch_template_name" => "#{launch_template_name}", \
+"launch_template_id" => "#{launch_template_id}", \
+"latest_version_number" => "#{latest_version_number}", \
 "image_id" => "#{image_id}", \
 "instance_type" => "#{instance_type}", \
 "security_group_ids" => #{security_groups.to_s}, \
