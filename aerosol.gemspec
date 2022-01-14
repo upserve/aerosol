@@ -6,7 +6,7 @@ Gem::Specification.new do |gem|
   gem.email         = %w{tomhulihan@swipely.com bright@swipely.com toddlunter@swipely.com}
   gem.description   = %q{Instance-based deploys made easy}
   gem.summary       = %q{Instance-based deploys made easy}
-  gem.homepage      = "https://github.com/swipely/aerosol"
+  gem.homepage      = "https://github.com/upserve/aerosol"
   gem.license       = 'MIT'
 
   gem.files         = `git ls-files`.split($\)
@@ -29,7 +29,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'cane'
   gem.add_development_dependency 'pry'
   gem.add_development_dependency 'rake', '~> 10.0'
-  gem.add_development_dependency 'rspec', '< 3.0'
+  gem.add_development_dependency 'rspec', '~> 3'
   gem.add_development_dependency 'webmock'
   gem.add_development_dependency 'vcr'
 end

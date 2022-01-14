@@ -12,4 +12,6 @@ Gemfile.lock
 build/
 dist/
 
+.vscode
+
 docker-export-ubuntu-latest.tar.gz

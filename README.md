@@ -1,7 +1,6 @@
 [![Gem Version](https://badge.fury.io/rb/aerosol.png)](http://badge.fury.io/rb/aerosol)
-[![Build Status](https://travis-ci.org/swipely/aerosol.png)](https://travis-ci.org/swipely/aerosol)
 
-![Aerosol](https://raw.github.com/swipely/aerosol/master/img/aerosol.png)
+![Aerosol](https://raw.github.com/upserve/aerosol/master/img/aerosol.png)
 =========================================================================
 
 Aerosol orchestrates instance-based-deploys.  Start new EC2 instances running your app every release, using auto scaling groups to orchestrate the startup of the new version and the graceful shutdown of the old version.

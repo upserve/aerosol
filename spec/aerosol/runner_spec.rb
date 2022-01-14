@@ -90,7 +90,7 @@ describe Aerosol::Runner do
             ERB.stub_chain(:new, :result)
             YAML.stub(:load).and_return(conf)
             deploy.stub_chain(:migration_ssh, :with_connection).and_yield(session)
-            Process.stub(:waitpid).and_return { 1 }
+            Process.stub(:waitpid).and_return(1)
             Process::Status.any_instance.stub(:exitstatus) { 0 }
             session.stub(:loop).and_yield
           end
