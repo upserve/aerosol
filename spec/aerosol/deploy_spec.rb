@@ -10,13 +10,16 @@ describe Aerosol::Deploy do
 
   describe '#migration' do
     context 'by default' do
-      its(:migrate?) { should be_true }
+      it 'is true' do
+        expect(subject.migrate?).to be true
+      end
     end
 
     context 'when do_not_migrate! has been called' do
       before { subject.do_not_migrate! }
-
-      its(:migrate?) { should be_false }
+      it 'is false' do
+        expect(subject.migrate?).to be false
+      end
     end
   end
 
@@ -80,7 +83,7 @@ describe Aerosol::Deploy do
         end
 
         it "returns true" do
-          expect(subject.run_post_deploy).to be_true
+          expect(subject.run_post_deploy).to be true
         end
       end
 
@@ -98,7 +101,9 @@ describe Aerosol::Deploy do
 
   describe '#local_ssh_ref' do
     context 'when there is no local_ssh' do
-      its(:local_ssh_ref) { should eq(ssh) }
+      it 'is ssh' do
+        expect(subject.local_ssh_ref).to eq(ssh)
+      end
     end
 
     context 'when there is a local_ssh' do
@@ -107,7 +112,9 @@ describe Aerosol::Deploy do
         subject.stub(:local_ssh).and_return(local_ssh)
       end
 
-      its(:local_ssh_ref) { should eq(local_ssh) }
+      it 'is ssh' do
+        expect(subject.local_ssh_ref).to eq(local_ssh)
+      end
     end
   end
 

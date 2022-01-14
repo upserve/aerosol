@@ -242,7 +242,7 @@ describe Aerosol::LaunchConfiguration do
           }],
           next_token: nil
         })
-        subject.exists?(instance.launch_configuration_name).should be_true
+        subject.exists?(instance.launch_configuration_name).should be true
       end
     end
 
@@ -254,7 +254,7 @@ describe Aerosol::LaunchConfiguration do
           launch_configurations: [],
           next_token: nil
         })
-        subject.exists?(instance.launch_configuration_name).should be_false
+        subject.exists?(instance.launch_configuration_name).should be false
       end
     end
   end
@@ -310,7 +310,9 @@ describe Aerosol::LaunchConfiguration do
           { launch_configurations: [], next_token: nil }
         ])
       end
-      its(:all) { should be_empty }
+      it "is empty" do
+        expect(subject.all).to be_empty
+      end
     end
 
     context 'when there are launch configurations' do
