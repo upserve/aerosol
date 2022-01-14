@@ -41,7 +41,7 @@ class Aerosol::LaunchTemplate
       }.merge(create_options)
     )
 
-    info self.inspect
+    debug self.inspect
   end
 
   def destroy!
