@@ -16,7 +16,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = %w{lib}
   gem.version       = Aerosol::VERSION
   gem.add_dependency 'activerecord', '>= 3.2.0'
-  gem.add_dependency 'clamp', '~> 0.6'
+  gem.add_dependency 'clamp', '~> 1'
   gem.add_dependency 'excon'
   gem.add_dependency 'aws-sdk-core', '~> 3'
   gem.add_dependency 'aws-sdk-s3', '~> 1'
