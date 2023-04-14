@@ -401,4 +401,62 @@ describe Aerosol::LaunchTemplate do
       expect(subject.meta_data['Test']).to eq('1')
     end
   end
+
+  describe 'instance_market_options' do
+    context 'When spot price is unlimited' do
+      subject do
+        described_class.new do
+          name :unlimited_spot_request_launch_template
+          request_spot true
+        end
+      end
+
+      it 'returns a simple instance market option hash without a spot price' do
+        expect(subject.instance_market_options).to eq({market_type: 'spot'})
+        Aerosol::AWS.compute.stub_responses(:create_launch_template, [])
+        
+      end
+    end
+
+    context 'When spot price is set and request_spot is true' do
+      subject do
+        described_class.new do
+          name :limited_spot_request_launch_template
+          request_spot true
+          spot_price 1.23
+        end
+      end
+
+      it 'returns a simple instance market option hash with a matching spot price' do
+        expected_hash = {market_type: 'spot', spot_options: {max_price: 1.23}}
+        expect(subject.instance_market_options).to eq(expected_hash)
+      end
+    end
+
+    context 'When spot price is set and request_spot is unset' do
+      subject do
+        described_class.new do
+          name :limited_spot_request_launch_template
+          spot_price 1.23
+        end
+      end
+
+      it 'returns a simple instance market option hash with a matching spot price' do
+        expected_hash = {market_type: 'spot', spot_options: {max_price: 1.23}}
+        expect(subject.instance_market_options).to eq(expected_hash)
+      end
+    end
+
+    context 'When spot price and request_spot are unset' do
+      subject do
+        described_class.new do
+          name :limited_spot_request_launch_template
+        end
+      end
+
+      it 'returns a simple instance market option hash with a matching spot price' do
+        expect(subject.instance_market_options).to be_nil
+      end
+    end
+  end
 end

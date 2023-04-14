@@ -7,11 +7,12 @@ class Aerosol::LaunchTemplate
                 :image_id, :instance_type, :security_groups, :user_data,
                 :iam_instance_profile, :kernel_id, :key_name, :spot_price, :created_time,
                 :network_interfaces, :block_device_mappings, :ebs_optimized
-  dsl_attribute :meta_data
+  dsl_attribute :meta_data, :request_spot
 
   primary_key :launch_template_name
   default_value(:security_groups) { [] }
   default_value(:meta_data) { {} }
+  default_value(:request_spot) { false }
 
   def launch_template_name(arg = nil)
     if arg
@@ -87,6 +88,7 @@ class Aerosol::LaunchTemplate
 "kernel_id" => "#{kernel_id}", \
 "key_name" => "#{key_name}", \
 "spot_price" => "#{spot_price}", \
+"request_spot" => "#{request_spot}", \
 "created_time" => "#{created_time}", \
 "block_device_mappings" => #{block_device_mappings}", \
 "ebs_optimized" => #{ebs_optimized} \
@@ -99,15 +101,25 @@ class Aerosol::LaunchTemplate
     Base64.encode64(Aerosol::Util.strip_heredoc(realized_user_data || ''))
   end
 
+  def instance_market_options
+    if spot_price
+      return {
+        market_type: 'spot',
+        spot_options: {
+          max_price: spot_price
+        }
+      }
+    elsif request_spot
+      return {
+        market_type: 'spot'
+      }
+    else
+      return nil
+    end
+  end
+
 private
   def create_options
-    instance_market_options = {
-      market_type: 'spot',
-      spot_options: {
-        max_price: spot_price
-      }
-    } if spot_price
-
     {
       iam_instance_profile: { name: iam_instance_profile },
       kernel_id: kernel_id,
